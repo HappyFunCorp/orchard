@@ -17,7 +17,9 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
   s.executables << 'orchard'
 
-  #s.add_dependency "rails", "~> 3.2.12"
-  
-  #s.add_dependency 'haml'
+  s.add_dependency "thor"
+  s.add_dependency "hipchat-api"
+  s.add_dependency "github_api"
+  s.add_dependency "httparty"
+  s.add_dependency "highline"
 end

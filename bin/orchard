@@ -2,4 +2,4 @@
 
 require 'orchard'
 
-puts 'hello'
+Orchard::CLI::CLI.start( ARGV )
