@@ -11,29 +11,61 @@ module Orchard
         self.class.get "/projects.json"
       end
 
-      def auth_token
-        unless @auth_token
-          file = "#{ENV['HOME']}/.juicerc"
-          if File.exists? file
-            @auth_token = File.read( file ).gsub( /\s/m, "" )
-          else
-            puts "#{file} not found, logging into happyfunjuice.com"
-            username = ask( "Username : " ) { |q| q.echo = true }
-            password = ask( "Password : " ) { |q| q.echo = '.' }
+      def auths
+        auth_token
+        @auths ||= self.class.get "/profile/authentications.json"
+      end
 
-            resp = self.class.post "/auth", {body: { username: username, password: password } }
-            pp resp
-            if resp['auth_token']
-              @auth_token = resp['auth_token']
-              File.open( file, "w" ) do |o|
-                o.puts @auth_token
-              end
-            end
-          end
-          self.class.default_params auth_token: @auth_token
+      def auth( provider )
+        auths.select do |x|
+          return x['token'] if x['provider'] == provider
         end
 
-        @auth_token
+        nil
+      end
+
+      def hipchat_api( token = nil )
+        auth_token
+        ret = {}
+        if( token )
+          ret = self.class.post "/organizations/1/hipchat/auth_token.json", {query: {hipchat_auth_token: token}}
+        else
+          ret = self.class.get "/organizations/1/hipchat/auth_token.json"
+        end
+        ret['hipchat_auth_token']
+      end
+
+      def auth_token
+        file = "#{ENV['HOME']}/.juice.yml"
+
+        unless @options
+          if File.exists? file
+            @options = YAML.load( File.read( file ) )
+          end
+        end
+
+        @options ||= {}
+
+        if !@options['auth_token']
+          puts "#{file} not found, logging into happyfunjuice.com"
+          username = ask( "Username : " ) { |q| q.echo = true }
+          password = ask( "Password : " ) { |q| q.echo = '.' }
+
+          resp = self.class.post "/auth", {body: { username: username, password: password } }
+          pp resp
+          if resp['auth_token']
+            @options['auth_token'] = resp['auth_token']
+          end
+        end
+
+        self.class.default_params auth_token: @options['auth_token'] if @options['auth_token']
+
+  
+        File.open( file, "w" ) do |o|
+          o.puts YAML.dump( @options || {} )
+        end
+
+        @options['auth_token']
       end
     end
   end

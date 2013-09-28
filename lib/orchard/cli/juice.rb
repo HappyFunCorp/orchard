@@ -26,6 +26,12 @@ module Orchard
       def lookup_user( email )
       end
 
+      desc "hipchat_api TOKEN", "Sets the organization hipchat token"
+      def hipchat_api( token )
+        client.hipchat_api token
+      end
+
+
       no_commands do
         def client
           @client ||= Orchard::Client.juice_client

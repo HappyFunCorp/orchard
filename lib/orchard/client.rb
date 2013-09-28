@@ -21,11 +21,11 @@ module Orchard
         puts "Looking for token: #{type}"
         token = case type
         when :hipchat
-          ENV['HIPCHAT_API_TOKEN']
+          ENV['HIPCHAT_API_TOKEN'] || juice_client.hipchat_api
         when :github
-          ENV['GITHUB_API_TOKEN']
+          ENV['GITHUB_API_TOKEN'] || juice_client.auth( "github" )
         when :heroku
-          ENV['HEROKU_API_TOKEN']
+          ENV['HEROKU_API_TOKEN'] || juice_client.auth( "heroku" )
         else
           throw "Unknown token type #{type}"
         end
@@ -33,7 +33,7 @@ module Orchard
         
         throw "Token not found for #{type}" if token.nil? || token == ""
 
-        puts "Found #{token}"
+        puts "#{type}:#{token}"
         token
       end
     end
