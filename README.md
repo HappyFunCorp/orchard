@@ -10,43 +10,43 @@ It integrates with
 
 # Installation
 
-gem 'orchard'
+    gem 'orchard'
 
 # CLI Usage
 
-orchard help
-orchard projects
-orchard project info Juice
-orchard project addmember Juice will@happyfuncorp.com
+    orchard help
+    orchard projects
+    orchard project info Juice
+    orchard project addmember Juice will@happyfuncorp.com
 
 # Using orchard in other scripts
 
 Orchard::Client is the main entry point.  This will return a configured client, for example one of:
 
-* Orchard::Client::JuiceClient
-* Orchard::Client::HipchatClient
-* Orchard::Client::GithubClient
+    Orchard::Client::JuiceClient
+    Orchard::Client::HipchatClient
+    Orchard::Client::GithubClient
 
 If you haven't logged in to juice, it will ask you, and then it will pull the auth code for the given project.  Sometimes it will return a organization API code since they work off of projects.  The hipchat is stored on the Organization level for example.
 
-  require 'orchard'
-  juice = Orchard::Client.juice_client
-  juice.profile
+    require 'orchard'
+    juice = Orchard::Client.juice_client
+    juice.profile
 
 or
 
-  require 'orchard'
-  Orchard::Client::hipchat_client.post_message room_name, message
+    require 'orchard'
+    Orchard::Client::hipchat_client.post_message room_name, message
 
 ## Details
 
 This tool will be installed on developers and managers machine to facilitate the creation and management of third party services, and make it possible to wire them together.
 
-# JUICE
+# HappyFunJuice
 
 The tool will require a juice account to use, and will piggy back on the authentication used in juice.  If it’s more expedient to call juice, rather than local gem call, do so.
 
-# PROJECT
+# Project
 
 There will be a concept of a project, and operations will be on services in the context of a project.
 
