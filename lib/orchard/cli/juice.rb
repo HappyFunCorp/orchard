@@ -13,7 +13,7 @@ module Orchard
           return
         end
 
-        system "open http://happyfunjuice.com/project/#{project_id}"
+        system "open http://happyfunjuice.com/projects/#{project_id}"
       end
 
       desc "settings NAME", "Open up juice settings"
@@ -24,7 +24,7 @@ module Orchard
           return
         end
 
-        system "open http://happyfunjuice.com/project/#{project_id}/overview"
+        system "open http://happyfunjuice.com/projects/#{project_id}/overview"
       end
 
       desc "create NAME", "Create a juice project"
