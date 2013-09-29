@@ -98,7 +98,7 @@ module Orchard
         info( name )
       end
 
-      desc "add_hipchat ID ROOM", "Add a hipchat room to a project"
+      desc "add_hipchat NAME ROOM", "Add a hipchat room to a project"
       def add_hipchat( name, room )
         client.project_add_hipchat( project_id_from_name( name ), room )
         info( name )
