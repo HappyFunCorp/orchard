@@ -202,8 +202,9 @@ module Orchard
           puts "You chose: #{room}"
 
           if room == "create"
-            puts "Creating a room #{room}"
-            Orchard::Client.hipchat_client.create_room( room, "Let's talk about #{room}!" )
+            puts "Creating a room #{name}"
+            Orchard::Client.hipchat_client.create_room( name, "Let's talk about #{name}!" )
+            add_hipchat name, name
           elsif set( room )
             add_hipchat name, room
           end
@@ -239,7 +240,11 @@ module Orchard
             menu.choices *github_client.list_teams.collect { |x| x.name }
           end
 
-          if set( team )
+          if team == "create"
+            puts "Creating team: #{name}"
+            pp github_client.create_team( name )
+            add_team( name, team )
+          elsif set( team )
             add_team( name, team )
           end
         end
