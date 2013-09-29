@@ -10,7 +10,11 @@ module Orchard
       def create_room( name, topic )
         creator = user_by_name 'Will Schenk'
 
-        api.rooms_create name, creator['user_id'], 'public', topic
+        ret =  api.rooms_create name, creator['user_id'], 'public', topic
+
+        if ret["error"]
+          pp ret["error"]
+        end
 
         @rooms = nil
       end
@@ -29,7 +33,11 @@ module Orchard
       end
 
       def room_info( name )
-        api.rooms_show( room_by_name( name )['room_id'] ).parsed_response['room']
+        room = room_by_name name
+
+        if( room )
+          api.rooms_show( room['room_id'] ).parsed_response['room']
+        end
       end
 
       def users

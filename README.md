@@ -50,14 +50,21 @@ The tool will require a juice account to use, and will piggy back on the authent
 
 There will be a concept of a project, and operations will be on services in the context of a project.
 
-* (TODO) create project (juice create project)
-* (TODO) list projects (juice list)
+* (DONE) create project (juice create project)
+* (DONE) list projects (juice list)
 
 PROJECT:
-* (TODO) open juice console url
+* (DONE) open juice console url
 * (TODO) open production url
 * (TODO) open staging url
 * (TODO) list who is on a project (juice actor api)
+* (TODO) check and configure a project
+** (DONE) Create a project if it doesn't exist
+** (DONE) Create a hipchat room if it isn't set
+** (TODO) Check to see if bugtracking is configured
+** (DONE) Check to see if the github team is set
+** (DONE) Check to see if github hooks are set
+** (TODO) Add juice feeds for repos within the project
 
 # GITHUB
 
@@ -100,5 +107,14 @@ PROJECT:
 * (TODO) add member
 * (TODO) create HIPCHAT hook ?? possible
 * (TODO) create GITHUB hook
+
+## Development
+
+The following environment variables will be used if set, otherwise they will be pulled from Juice
+
+    JUICE_API_ENDPOINT || http://happyfuncorp.com/api
+    HIPCHAT_API_TOKEN'] || juice_client.hipchat_api
+    GITHUB_API_TOKEN'] || juice_client.auth( "github" )
+    HEROKU_API_TOKEN'] || juice_client.auth( "heroku" )
 
 
