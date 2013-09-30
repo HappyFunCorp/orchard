@@ -91,6 +91,41 @@ module Orchard
         nil
       end
 
+      def activities( project_id, after, before = Time.now )
+        auth_token
+        activities = self.class.get "/projects/#{project_id}/activities.json", {query: { after: after.to_i, before: before.to_i } }
+        activities_stats activities, after, before
+      end
+
+      def activities_stats( activities, after, before )
+        stats = { type: {}, 
+                  actors_activites: {}, 
+                  activities: activities, 
+                  after: after, 
+                  before: before, 
+                  active_tickets: {},
+                  closed_tickets: {}}
+
+        activities.each do |x|
+          x['happened_at'] = Time.parse x['happened_at']
+        end.sort do |a,b|
+          a['happened_at'] <=> b['happened_at']
+        end.each do |a|
+          actor = a['actor_identifier']
+          type = a['activity_type']
+          stats[:type][type] ||= []
+          stats[:type][type] << a
+
+          if( !(type =~ /^juice/) && !(type =~ /tweet/) )
+            stats[:actors_activites][type] ||= {}
+            stats[:actors_activites][type][actor] ||= []
+            stats[:actors_activites][type][actor] << a
+          end
+        end
+
+        stats
+      end
+
       def hipchat_api( token = nil )
         auth_token
         ret = {}
@@ -130,7 +165,7 @@ module Orchard
         unless @options
           if File.exists? file
             @options = YAML.load( File.read( file ) )
-            puts "Juice: #{@options['auth_token']}"
+            $stderr.puts "Juice: #{@options['auth_token']}"
           end
         end
 
