@@ -133,7 +133,7 @@ module Orchard
 
         if project_id.nil?
           choose do |menu|
-            menu.header = "No juice project found"
+            menu.header = "No juice project found".red
 
             menu.prompt = "Create?"
 
@@ -144,7 +144,7 @@ module Orchard
             menu.choice "ignore"
           end
         else
-          puts "Juice project found"
+          puts "Juice project found".green
         end
       end
 
