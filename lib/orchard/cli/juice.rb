@@ -308,6 +308,94 @@ module Orchard
         end
       end
 
+      desc "github_check", "Prints out all teams not assigned to a project"
+      def github_check
+        puts "github check: TODO"
+      end
+
+      desc "activities NAME", "Shows recent project activities in last week or (default) current week [--lastweek] [--thisweek]"
+      option :lastweek
+      option :thisweek
+      def activities( name )
+        project_id = project_id_from_name name
+        return if project_id.nil?
+
+        now = DateTime.now.to_date + 1
+        after = now - now.wday
+        before = Time.now
+
+        if( options[:lastweek] )
+          after -= 7
+          before = after + 7
+        end
+
+        summary = client.activities( project_id, after.to_time, before.to_time )
+
+        summary
+
+        puts "#{name} Activity for #{summary[:after].strftime( "%Y-%m-%d %H:%M" )} - #{summary[:before].strftime( "%Y-%m-%d %H:%M" )}"
+        puts
+        puts "Activity Summary"
+        summary[:type].keys.sort.each do |x|
+          printf "%-6s %s\n", summary[:type][x].count, x
+        end
+
+        puts
+        puts "Activity Breakdown"
+        summary[:actors_activites].keys.sort.each do |x|
+          summary[:actors_activites][x].keys.select { |x| x}.sort.each do |type|
+            printf "%-6s %-20s %s\n", summary[:actors_activites][x][type].count, type, x
+          end
+        end
+
+        puts
+        puts "New Tickets"
+        (summary[:type]['bugtracking.openticket'] || []).each do |activity|
+          puts activity['description'][0..100].gsub( /\n/, " " )
+        end
+
+        puts
+        puts "Closed Tickets"
+        (summary[:type]['bugtracking.closedticket'] || []).each do |activity|
+          puts activity['description'][0..100].gsub( /\n/, " " )
+        end
+
+        puts
+        puts "Active Tickets"
+        summary[:type].keys.select do |x|
+          x =~ /bugtracking/
+        end.collect do |x|
+          summary[:type][x].collect do |a|
+            a['description']
+          end
+        end.flatten.sort.uniq.each do |x|
+          puts x[0..100].gsub( /\n/, " " ) unless x =~ /^\[Changeset\]/
+        end
+
+        puts
+        puts "Commits"
+        (summary[:type]['PushEvent'] || []).each do |x|
+          printf "%-10s %s\n", x['actor_identifier'], x['description'][0..100].gsub( /\n/, " " )
+        end
+      end
+
+      desc "report_dump", "Write out weekly reports"
+      option :lastweek
+      def report_dump
+        puts "Loading projects"
+
+        system "mkdir -p /tmp/juice_reports"
+        client.projects.each do |project|
+          File.open( "/tmp/juice_reports/#{project['name']}.txt", "w" ) do |out|
+            puts "Running report for #{project['name']}"
+            $stdout = out
+            info project['name']
+            activities project['name']
+            $stdout = STDOUT
+          end
+        end
+      end
+
       no_commands do
         def client
           @client ||= Orchard::Client.juice_client

@@ -18,7 +18,7 @@ module Orchard
       end
 
       def get_token( type )
-        puts "Looking for token: #{type}"
+        $stderr.puts "Looking for token: #{type}"
         token = case type
         when :hipchat
           ENV['HIPCHAT_API_TOKEN'] || juice_client.hipchat_api
@@ -33,7 +33,7 @@ module Orchard
         
         throw "Token not found for #{type}" if token.nil? || token == ""
 
-        puts "#{type}:#{token}"
+        $stderr.puts "#{type}:#{token}"
         token
       end
     end

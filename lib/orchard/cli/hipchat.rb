@@ -28,7 +28,7 @@ module Orchard
         client.users.sort do
           |b,a| a['last_active'].to_i <=> b['last_active'].to_i
         end.each do |u|
-          printf "%6s %-20s %-20s %15s %18s %s\n", u['user_id'], u['name'], u['mention_name'], u['last_active'], u['timezone'], u['title']
+          printf "%6s %-25s %-15s %-25s %-17s %-19s %s\n", u['user_id'], u['name'], u['mention_name'], u['email'], u['last_active'], u['timezone'], u['title']
         end
       end
 
