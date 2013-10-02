@@ -95,7 +95,9 @@ module Orchard
 
       desc "users NAME", "Get a list of project users"
       def users( name )
-        pp client.project_users( project_id_from_name( name ) )
+        client.project_users( project_id_from_name( name ) ).each do |u|
+          printf "%5s %25s %35s %35s", u['id'], u['name'], u['email'], u['personal_email']
+        end
       end
 
       desc "add_team NAME TEAM", "Add a github team to a project"
@@ -329,7 +331,7 @@ module Orchard
             printf "%-30s %s\n", x[:room], x[:projects].join( "," )
           end
         rescue Exceptions::HipchatAuthenticationFailure
-          puts "Unable to connect to Hipchat. Is your key valid?"
+          puts "Unable to connect to Hipchat. Is your key valid?".red
         end
       end
 
@@ -360,33 +362,33 @@ module Orchard
 
         puts "#{name} Activity for #{summary[:after].strftime( "%Y-%m-%d %H:%M" )} - #{summary[:before].strftime( "%Y-%m-%d %H:%M" )}"
         puts
-        puts "Activity Summary"
+        puts "Activity Summary".bold.blue
         summary[:type].keys.sort.each do |x|
           printf "%-6s %s\n", summary[:type][x].count, x
         end
 
         puts
-        puts "Activity Breakdown"
+        puts "Activity Breakdown".bold.blue
         summary[:actors_activites].keys.sort.each do |x|
           summary[:actors_activites][x].keys.select { |x| x}.sort.each do |type|
-            printf "%-6s %-20s %s\n", summary[:actors_activites][x][type].count, type, x
+            printf "%-6s %-35s %s\n", summary[:actors_activites][x][type].count, type, x
           end
         end
 
         puts
-        puts "New Tickets"
+        puts "New Tickets".bold.blue
         (summary[:type]['bugtracking.openticket'] || []).each do |activity|
           puts activity['description'][0..100].gsub( /\n/, " " )
         end
 
         puts
-        puts "Closed Tickets"
+        puts "Closed Tickets".bold.blue
         (summary[:type]['bugtracking.closedticket'] || []).each do |activity|
           puts activity['description'][0..100].gsub( /\n/, " " )
         end
 
         puts
-        puts "Active Tickets"
+        puts "Active Tickets".bold.blue
         summary[:type].keys.select do |x|
           x =~ /bugtracking/
         end.collect do |x|
@@ -398,10 +400,17 @@ module Orchard
         end
 
         puts
-        puts "Commits"
+        puts "Commits".bold.blue
         (summary[:type]['PushEvent'] || []).each do |x|
           printf "%-10s %s\n", x['actor_identifier'], x['description'][0..100].gsub( /\n/, " " )
         end
+      end
+
+      desc "report", "Because report_dump is weird"
+      def report(name)
+        _p = project_id_from_name( name )
+        info _p
+        activities _p
       end
 
       desc "report_dump", "Write out weekly reports"
