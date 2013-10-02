@@ -21,6 +21,8 @@ module Orchard
 
       def rooms
         @rooms ||= api.rooms_list.parsed_response['rooms']
+        raise Exceptions::HipchatAuthenticationFailure if @rooms.nil?
+        @rooms
       end
 
       def room_by_name( name )
@@ -28,7 +30,7 @@ module Orchard
           return r if r['name'] == name
         end
 
-        puts "Room #{name} not found"
+        puts "Room #{name} not found".red
         nil
       end
 
@@ -49,7 +51,7 @@ module Orchard
           return u if u['name'] == name
         end
 
-        puts "User #{name} not found"
+        puts "User #{name} not found".red
       end
 
       def set_topic( room, topic )

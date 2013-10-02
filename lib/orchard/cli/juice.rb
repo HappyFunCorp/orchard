@@ -134,7 +134,7 @@ module Orchard
 
       desc "check_project NAME", "Check to see if a project exists"
       def check_project( name )
-        puts "Looking for project #{name}"
+        puts "Looking for project #{name}".bold
         project_id = project_id_from_name name
 
         if project_id.nil?
@@ -156,109 +156,118 @@ module Orchard
 
       desc "check_hipchat NAME", "Check to see if hipchat is configured"
       def check_hipchat(name)
-        puts "Looking to see if hipchat is configured"
-        project_id = project_id_from_name name
-        return if project_id.nil?
+        begin
+          puts "Looking to see if hipchat is configured".bold
+          project_id = project_id_from_name name
+          return if project_id.nil?
 
-        data = client.project project_id
-        config = data['orchard_config']
+          data = client.project project_id
+          config = data['orchard_config']
 
-        if( set( config['hipchat_room'] ) )
-          puts "Hipchat Room Configured: #{config['hipchat_room']}"
-          room = hipchat_client.room_info config['hipchat_room']
-          if room.nil?
-            choose do |menu|
-              menu.header = "Juice has the name configured, but can't find hipchat room named #{config['hipchat_room']}"
-              menu.prompt = "Create or ignore"
+          if( set( config['hipchat_room'] ) )
+            puts "Hipchat Room Configured: #{config['hipchat_room']}"
+            room = hipchat_client.room_info config['hipchat_room']
+            if room.nil?
+              choose do |menu|
+                menu.header = "Juice has the name configured, but can't find hipchat room named #{config['hipchat_room']}"
+                menu.prompt = "Create or ignore"
 
-              menu.choice "create" do
-                hipchat_client.create_room( config['hipchat_room'], "Let's talk about #{config['hipchat_room']}!" )
+                menu.choice "create" do
+                  hipchat_client.create_room( config['hipchat_room'], "Let's talk about #{config['hipchat_room']}!" )
+                end
+
+                menu.choice "ignore"
               end
-
-              menu.choice "ignore"
+            else
+              puts "Hipchat exists: #{config['hipchat_room']}"
             end
           else
-            puts "Hipchat exists: #{config['hipchat_room']}"
-          end
-        else
-          puts "Hipchat room not set"
+            puts "Hipchat room not set".yellow
 
-          choices = client.hipchat_check.select do |x|
-            x[:projects].first == "_unassigned_"
-          end.collect do |x|
-            x[:room]
-          end
-
-          if choices.member? name
-            puts "Found a matching room... attaching"
-            add_hipchat name, name
-            return
-          end
-
-          room = choose do |menu|
-            menu.header = "Select a hipchat room action"
-            menu.prompt = "Please choose a unassigned hipchat room to associate"
-            menu.choice "Create A Room called #{name}" do
-              "create"
+            choices = client.hipchat_check.select do |x|
+              x[:projects].first == "_unassigned_"
+            end.collect do |x|
+              x[:room]
             end
 
-            menu.choices *choices
-          end
+            if choices.member? name
+              puts "Found a matching room... attaching"
+              add_hipchat name, name
+              return
+            end
 
-          puts "You chose: #{room}"
+            room = choose do |menu|
+              menu.header = "Select a hipchat room action"
+              menu.prompt = "Please choose a unassigned hipchat room to associate"
+              menu.choice "Create A Room called #{name}" do
+                "create"
+              end
 
-          if room == "create"
-            puts "Creating a room #{name}"
-            Orchard::Client.hipchat_client.create_room( name, "Let's talk about #{name}!" )
-            add_hipchat name, name
-          elsif set( room )
-            add_hipchat name, room
+              menu.choices *choices
+            end
+
+            puts "You chose: #{room}"
+
+            if room == "create"
+              puts "Creating a room #{name}"
+              Orchard::Client.hipchat_client.create_room( name, "Let's talk about #{name}!" )
+              add_hipchat name, name
+            elsif set( room )
+              add_hipchat name, room
+            end
           end
+        rescue Exceptions::HipchatAuthenticationFailure
+          puts "Error communicating with Hipchat. Is your key valid?".red
         end
       end
 
       desc "check_team NAME", "Check to see if github team is configured"
       def check_team(name)
-        puts "Looking to see if github team is configured"
-        project_id = project_id_from_name name
-        return if project_id.nil?
+        begin
+          puts "Looking to see if github team is configured".bold
+          project_id = project_id_from_name name
+          return if project_id.nil?
 
-        data = client.project project_id
-        config = data['orchard_config']
+          data = client.project project_id
+          config = data['orchard_config']
 
-        ##
-        # Github teams
-        ##
+          ##
+          # Github teams
+          ##
 
-        if( config['teams'].size != 0 )
-          puts "Team: #{config['teams'].join( ',' )}"
-        else
-          puts "No teams set"
+          if( config['teams'].size != 0 )
+            puts "Team: #{config['teams'].join( ',' )}"
+          else
+            puts "No teams set".yellow
 
-          team = choose do |menu|
-            menu.header = "Select a github team"
-            menu.prompt = "Please select a team"
+            team = choose do |menu|
+              menu.header = "Select a github team"
+              menu.prompt = "Please select a team"
 
-            menu.choice "Create a new team" do
-              "create"
+              menu.choice "Create a new team" do
+                "create"
+              end
+
+              menu.choices *github_client.list_teams.collect { |x| x.name }
             end
 
-            menu.choices *github_client.list_teams.collect { |x| x.name }
+            if team == "create"
+              puts "Creating team: #{name}"
+              pp github_client.create_team( name )
+              add_team( name, team )
+            elsif set( team )
+              add_team( name, team )
+            end
           end
-
-          if team == "create"
-            puts "Creating team: #{name}"
-            pp github_client.create_team( name )
-            add_team( name, team )
-          elsif set( team )
-            add_team( name, team )
-          end
+        rescue RuntimeError => e
+          puts "Error communicating with github".red
+          puts Exceptions.formatted(e)
         end
       end
 
       desc "check_bugtracking NAME", "Check to see if bugtracking is configured"
       def check_bugtracking
-        puts "Looking to see if bugtracking is configured"
+        puts "Looking to see if bugtracking is configured".bold
         project_id = project_id_from_name name
         return if project_id.nil?
 
@@ -274,7 +283,7 @@ module Orchard
 
       desc "check_hooks NAME", "Check to see if the hooks are configured"
       def check_hooks( name )
-        puts "Looking for github hooks"
+        puts "Looking for github hooks".bold
         ##
         # Github Hooks
         ##
@@ -284,33 +293,43 @@ module Orchard
         data = client.project project_id
         config = data['orchard_config']
 
-        config['teams'].each do |team|
-          puts "Looking at repos for #{team}"
-          github_client.list_team_repos( team ).each do |repo|
-            printf "%-40s %s\n", repo['full_name'], repo['description']
-            found = {}
-            github_client.list_hooks( repo['full_name'] ).each do |hook|
-              puts "Found #{hook["name"]}"
-              found[hook['name']] = true
-            end
+        teams = config['teams']
 
-            unless found['hipchat']
-              puts "Missing hipchat hook"
-              if config['hipchat_room']
-                puts "Adding Hipchat Hook"
-                Orchard::CLI::Github.new.add_hipchat( repo['full_name'], config['hipchat_room'])
-              else
-                puts "Missing hipchat room"
+        if teams.count > 0
+          teams.each do |team|
+            puts "Looking at repos for #{team}".bold
+            github_client.list_team_repos( team ).each do |repo|
+              printf "%-40s %s\n", repo['full_name'], repo['description']
+              found = {}
+              github_client.list_hooks( repo['full_name'] ).each do |hook|
+                puts "Found #{hook["name"]}"
+                found[hook['name']] = true
+              end
+
+              unless found['hipchat']
+                puts "Missing hipchat hook"
+                if config['hipchat_room']
+                  puts "Adding Hipchat Hook"
+                  Orchard::CLI::Github.new.add_hipchat( repo['full_name'], config['hipchat_room'])
+                else
+                  puts "Missing hipchat room"
+                end
               end
             end
           end
+        else
+          puts "Teams must be set up correctly in order to monitor hooks.".red
         end
       end
 
       desc "hipchat_check", "Prints out all the rooms not assigned to rooms"
       def hipchat_check
-        client.hipchat_check.each do |x|
-          printf "%-30s %s\n", x[:room], x[:projects].join( "," )
+        begin
+          client.hipchat_check.each do |x|
+            printf "%-30s %s\n", x[:room], x[:projects].join( "," )
+          end
+        rescue Exceptions::HipchatAuthenticationFailure
+          puts "Unable to connect to Hipchat. Is your key valid?"
         end
       end
 

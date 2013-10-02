@@ -1,24 +1,25 @@
 #!/usr/bin/env ruby
 
 require 'orchard'
+require 'colorize'
 
 begin
   Orchard::CLI::CLI.start( ARGV )
 
 rescue Orchard::Exceptions::LoginAuthenticationFailure
-  puts "Login credentials invalid."
+  puts "Login credentials invalid.".red
 
 rescue Orchard::Exceptions::AuthenticationFailure
-  puts "Login credentials invalid."
+  puts "Login credentials invalid.".red
   puts ""
   puts "You probably need to log out and log back in again:"
   puts "  $ orchard juice logout"
   puts "  $ orchard juice login"
 
 rescue Orchard::Exceptions::AlreadyLoggedIn
-  puts "You're already logged in."
+  puts "You're already logged in.".red
 
 rescue Orchard::Exceptions::AlreadyLoggedOut
-  puts "You're already logged out."
+  puts "You're already logged out.".red
 
 end
