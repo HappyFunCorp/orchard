@@ -2,4 +2,23 @@
 
 require 'orchard'
 
-Orchard::CLI::CLI.start( ARGV )
+begin
+  Orchard::CLI::CLI.start( ARGV )
+
+rescue Orchard::Exceptions::LoginAuthenticationFailure
+  puts "Login credentials invalid."
+
+rescue Orchard::Exceptions::AuthenticationFailure
+  puts "Login credentials invalid."
+  puts ""
+  puts "You probably need to log out and log back in again:"
+  puts "  $ orchard juice logout"
+  puts "  $ orchard juice login"
+
+rescue Orchard::Exceptions::AlreadyLoggedIn
+  puts "You're already logged in."
+
+rescue Orchard::Exceptions::AlreadyLoggedOut
+  puts "You're already logged out."
+
+end

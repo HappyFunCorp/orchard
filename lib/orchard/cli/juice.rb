@@ -3,6 +3,12 @@ module Orchard
     class Juice < Thor
       desc "login", "Login to juice"
       def login
+        puts "Logged in." if client.login
+      end
+
+      desc "logout", "Clear juice credentials"
+      def logout
+        puts "Juice credentials cleared." if client.logout
       end
 
       desc "open NAME", "Open up juice"

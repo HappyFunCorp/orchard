@@ -4,8 +4,41 @@ module Orchard
   module Client
     class JuiceClient
       include HTTParty
+
+      class << self
+        
+        # Wrap HHTParty's get method so we can actually catch errors
+        def get( url, *args )
+          response = super( url, *args )
+          case response.code
+            when 401
+              raise Exceptions::AuthenticationFailure
+          end
+          return response
+        end
+
+        def post( url, *args )
+          response = super( url, *args )
+          case response.code
+            when 401
+              raise Exceptions::AuthenticationFailure
+          end
+          return response
+        end
+
+
+      end
+
       base_uri ENV['JUICE_API_ENDPOINT'] || 'http://happyfunjuice.com/api'
       # debug_output $stderr
+      
+      def login
+        query_login
+      end
+
+      def logout
+        destroy_auth_token
+      end
 
       def create_project( name )
         auth_token
@@ -159,38 +192,76 @@ module Orchard
         end
       end
 
-      def auth_token
-        file = "#{ENV['HOME']}/.juice.yml"
+      def config_file
+        "#{ENV['HOME']}/.juice.yml"
+      end
 
-        unless @options
-          if File.exists? file
-            @options = YAML.load( File.read( file ) )
-            $stderr.puts "Juice: #{@options['auth_token']}"
-          end
+      def destroy_auth_token
+        _prev_options = @options
+        begin
+          return File.delete config_file
+        rescue Errno::ENOENT
+          raise Exceptions::AlreadyLoggedOut
+        ensure
+          @options = {}
         end
+        _prev_options
+      end
 
-        @options ||= {}
+      
+      def query_login
 
-        if !@options['auth_token']
-          puts "#{file} not found, logging into happyfunjuice.com"
+        begin
+          response = read_auth_token
+          @options = response
+
+          # If it doesn't contain an auth_token, it's as good as not existing:
+
+          raise Exceptions::AlreadyLoggedIn
+
+        rescue Errno::ENOENT
           username = ask( "Username : " ) { |q| q.echo = true }
           password = ask( "Password : " ) { |q| q.echo = '.' }
 
-          resp = self.class.post "/auth", {body: { username: username, password: password } }
-          pp resp
-          if resp['auth_token']
-            @options['auth_token'] = resp['auth_token']
-          end
+          response = self.class.post "/auth", {body: { username: username, password: password } }
+
+          raise Exceptions::LoginAuthenticationFailure if response['auth_token'].blank?
+
+          @options = response.parsed_response
+
+          write_auth_token( @options )
         end
+      end
 
-        self.class.default_params auth_token: @options['auth_token'] if @options['auth_token']
 
-        File.open( file, "w" ) do |o|
-          o.puts YAML.dump( @options || {} )
+      def read_auth_token
+        begin
+          response = YAML.load( File.read( config_file ) )
+          raise StandardError.new unless response['auth_token']
+          response
+        rescue StandardError
+          raise Errno::ENOENT
         end
+      end
 
+
+      def write_auth_token( options )
+        File.open( config_file, "w" ) do |o|
+          o.puts YAML.dump( options || {} )
+        end
+        return options
+      end
+
+
+      def auth_token
+        begin
+          query_login
+        rescue Exceptions::AlreadyLoggedIn
+        end
+        self.class.default_params auth_token: @options['auth_token']
         @options['auth_token']
       end
+
     end
   end
 end
