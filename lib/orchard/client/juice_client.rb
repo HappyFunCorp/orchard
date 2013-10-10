@@ -54,14 +54,30 @@ module Orchard
         end
       end
 
+      def summary
+        auth_token
+        @projects ||= self.class.get( "/projects/summary.json" ).each do |x|
+          x['orchard_config'] ||= {}
+          x['orchard_config']['teams'] ||= []
+        end
+      end
+
+      def organizations
+        auth_token
+        @organizations ||= self.class.get( "/organizations.json" ).each do |o|
+          o['orchard_config'] ||= {}
+        end
+      end
+
+
       def project_id_from_name( name )
         return name if name =~ /^[0-9]+$/
 
         projects.each do |project|
-          return project['id'] if project['name'] == name
+          return project['id'] if project['name'].projectize == name.projectize
         end
 
-        puts "Couldn't find project #{name}"
+        puts "Couldn't find project #{name.projectize}"
         nil
       end
 
@@ -73,6 +89,16 @@ module Orchard
         data['orchard_config']['teams'] ||= []
 
         data
+      end
+
+      def search_users( query )
+        auth_token
+        self.class.get "/users/search/#{CGI.escape(query)}"
+      end
+
+      def organization_users( id )
+        auth_token
+        self.class.get "/organizations/#{id}/users.json"
       end
 
       def project_users( id )

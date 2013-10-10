@@ -17,9 +17,12 @@ rescue Orchard::Exceptions::AuthenticationFailure
   puts "  $ orchard juice login"
 
 rescue Orchard::Exceptions::AlreadyLoggedIn
-  puts "You're already logged in.".red
+  puts "You're already logged in."
 
 rescue Orchard::Exceptions::AlreadyLoggedOut
-  puts "You're already logged out.".red
+  puts "You're already logged out."
+
+rescue Psych::SyntaxError
+  $stderr.puts "\n\tError during processing: #{$!.message}\n\n"
 
 end

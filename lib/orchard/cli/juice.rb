@@ -11,7 +11,7 @@ module Orchard
         puts "Juice credentials cleared." if client.logout
       end
 
-      desc "open NAME", "Open up juice"
+      desc "open [PROJECT]", "Open up juice"
       def open( name )
         project_id = project_id_from_name name
         if( project_id.nil? )
@@ -22,7 +22,7 @@ module Orchard
         system "open http://happyfunjuice.com/projects/#{project_id}"
       end
 
-      desc "settings NAME", "Open up juice settings"
+      desc "settings [PROJECT]", "Open up juice settings"
       def settings(name)
         project_id = project_id_from_name name
         if( project_id.nil? )
@@ -33,7 +33,7 @@ module Orchard
         system "open http://happyfunjuice.com/projects/#{project_id}/overview"
       end
 
-      desc "create NAME", "Create a juice project"
+      desc "create [PROJECT]", "Create a juice project"
       def create( name )
         puts "TIP: you can also run check #{name} to set up everything"
         client.create_project( name )
@@ -41,17 +41,34 @@ module Orchard
 
       desc "projects", "List juice projects"
       def projects
-        client.projects.each do |project|
-          printf "%-5s %-25s %-10s %s\n", 
-            project['id'], 
-            project['name'], 
+        puts
+          printf "%-25s %-10s %-10s %-25s\n".blue, '', 'Commits', 'Deploys', '', ''
+          printf "%-25s %-10s %-10s %-25s\n".blue, '', 'this', 'this', '', ''
+          printf "%-25s %-10s %-10s %-25s\n".underline.blue, 'Name', 'wk', 'wk', 'Hipchat room', 'Teams'
+        client.summary.sort{|a,b| b['name'].to_i <=> a['name'].to_i}.each_with_index do |project,i|
+          printf "%-25s %-10s %-10s %-25s\n".try{|x| i%4==3 ? x.underline : x}, 
+            #project['id'], 
+            project['name'].projectize, 
+            (project['has_source_feeds'] ? project['commits_this_week'] : ''),
+            (project['has_server_feeds'] ? project['deploys_this_week'] : ''),
             project['orchard_config']['hipchat_room'],
             project['orchard_config']['teams'].join( ',' )
         end
+        puts
       end
 
-      desc "info name", "Get project meta data"
+      # Alias for 'info' command
+      desc "project [NAME]", "Get project metadata"
+      def project( name )
+        self.class.new.info( name )
+      end
+
+
+      desc "info [NAME]", "Get project metadata"
       def info( name )
+        puts
+        puts 'Info:'.bold
+        puts
         project_id = project_id_from_name name
         if( project_id.nil? )
           puts "#{name} not found"
@@ -59,69 +76,113 @@ module Orchard
         end
 
         data = client.project( project_id_from_name( name ) )
-        puts "Name      : #{data['name']}"
-        puts "ID        : #{data['id']}"
-        puts "Hipchat   : #{data['orchard_config']['hipchat_room']}"
-        puts "Teams     : #{data['orchard_config']['teams'].join( ',' )}"
+        puts "Name".blue + "      : #{data['name']} (#{data['name'].projectize})"
+        puts "ID".blue + "        : #{data['id']}"
+        puts "Hipchat".blue + "   : #{data['orchard_config']['hipchat_room']}"
+        puts "Teams".blue + "     : #{data['orchard_config']['teams'].join( ',' )}"
+
+        puts
 
         repos = []
         data['orchard_config']['teams'].each do |team|
-          puts "TEAM #{team}"
+          puts "Team #{team}:".bold
+          Orchard::CLI::Github.new.team( team )
           github_client.list_team_repos( team ).each do |repo|
             repos << repo['full_name']
-            printf "Repo: %-40s %s\n", repo['full_name'], repo['description']
+            #printf "Repo".blue + "      : %-40s %s\n", repo['full_name'], repo['description']
           end
-          github_client.list_team_members( team ).each do |user|
-            printf "User: %s\n", user['login']
-          end
+          #github_client.list_team_members( team ).each do |user|
+            #printf "User".blue + "      : %s\n", user['login']
+          #end
         end
+
+        puts 'Github Hooks:'.bold
         repos.each do |repo|
           Orchard::CLI::Github.new.hooks( repo )
         end
         data
       end
 
-      desc "feeds name", "Show the configured juice feeds"
+      desc "organizations", "Get a list of your organizations"
+      def organizations
+        puts
+        printf "%-5s %-25s %-25s\n".underline.blue, 'ID', 'Name', 'Domain name'
+        client.organizations.each do |o|
+          printf "%-5s %-25s %-25s\n", o['id'], o['name'], o['domain_name']
+        end
+        puts
+      end
+        
+
+      desc "feeds [PROJECT]", "Show the configured juice feeds"
       def feeds(name)
+        puts
+        printf "%-30s %-20s %-30s\n".blue.underline, 'Feed', 'Environment', 'Namespace'
         client.feeds( project_id_from_name( name ) ).sort do
           |a,b| a['feed_name'] <=> b['feed_name']
         end.each do |feed|
-          printf "%-15s %-12s %s\n", 
+          printf "%-30s %-20s %-30s\n", 
             feed['feed_name'], 
             (feed['environment'] || {})['name'],
             [feed['namespace'],feed['name']].select {|x| x}.join( '/' )
         end
+        puts
       end
 
-      desc "users NAME", "Get a list of project users"
-      def users( name )
-        client.project_users( project_id_from_name( name ) ).each do |u|
-          printf "%5s %25s %35s %35s", u['id'], u['name'], u['email'], u['personal_email']
+      desc "users [PROJECT (optional)]", "Get a list of users"
+      def users( name=nil )
+
+        if name.nil?
+          _users = client.organization_users( 1 ) # Hard-code hfc org here
+        else
+          _users = client.project_users( project_id_from_name( name ) )
         end
+
+        puts
+        printf "%-25s %35s %35s %35s %35s\n".blue.underline, 'Name', 'Email', 'Personal email', 'Heroku', 'Github'
+        _users.each do |u|
+          printf "%-25s %35s %35s %35s %35s\n", u['name'], u['email'], u['personal_email'], u['heroku_handle'], u['github_handle']
+        end
+        puts
       end
 
-      desc "add_team NAME TEAM", "Add a github team to a project"
+      desc "add_team [PROJECT] [TEAM]", "Add a github team to a project"
       def add_team( name, team )
         client.project_add_team( project_id_from_name( name ), team )
         info( name )
       end
 
-      desc "add_hipchat NAME ROOM", "Add a hipchat room to a project"
+      desc "add_hipchat [PROJECT] [ROOM]", "Add a hipchat room to a project"
       def add_hipchat( name, room )
         client.project_add_hipchat( project_id_from_name( name ), room )
         info( name )
       end
 
-      desc "lookup_user EMAIL", "Looks up a user by email address"
+      desc "lookup_user [EMAIL]", "Looks up a user by email address"
       def lookup_user( email )
       end
 
-      desc "hipchat_api TOKEN", "Sets the organization hipchat token"
+      desc "search_users [QUERY]", "Look up a user by name, email, github, heroku, etc."
+      def search_users( query )
+        puts
+        printf "%-25s %35s %35s %35s %35s\n".blue.underline, 'Name', 'Email', 'Personal email', 'Heroku', 'Github'
+        client.search_users(query).each do |u|
+          printf "%-25s %35s %35s %35s %35s\n", u['name'], u['email'], u['personal_email'], u['heroku_handle'], u['github_handle']
+        end
+        puts
+      end
+
+      desc "user_set [FIELD] [VALUE]", "Set the value of a particular field for a user"
+      def user_set( field, value )
+        client
+      end
+
+      desc "hipchat_api [TOKEN]", "Sets the organization hipchat token"
       def hipchat_api( token )
         client.hipchat_api token
       end
 
-      desc "check NAME", "Check a project config (all the checks)"
+      desc "check [PROJECT]", "Check a project config (all the checks)"
       def check( name )
         check_project( name )
         puts
@@ -134,7 +195,7 @@ module Orchard
         info( name )
       end
 
-      desc "check_project NAME", "Check to see if a project exists"
+      desc "check_project [PROJECT]", "Check to see if a project exists"
       def check_project( name )
         puts "Looking for project #{name}".bold
         project_id = project_id_from_name name
@@ -156,7 +217,7 @@ module Orchard
         end
       end
 
-      desc "check_hipchat NAME", "Check to see if hipchat is configured"
+      desc "check_hipchat [PROJECT]", "Check to see if hipchat is configured"
       def check_hipchat(name)
         begin
           puts "Looking to see if hipchat is configured".bold
@@ -223,7 +284,7 @@ module Orchard
         end
       end
 
-      desc "check_team NAME", "Check to see if github team is configured"
+      desc "check_team [PROJECT]", "Check to see if github team is configured"
       def check_team(name)
         begin
           puts "Looking to see if github team is configured".bold
@@ -267,7 +328,7 @@ module Orchard
         end
       end
 
-      desc "check_bugtracking NAME", "Check to see if bugtracking is configured"
+      desc "check_bugtracking [PROJECT]", "Check to see if bugtracking is configured"
       def check_bugtracking
         puts "Looking to see if bugtracking is configured".bold
         project_id = project_id_from_name name
@@ -283,7 +344,7 @@ module Orchard
         puts "TODO Check bug tracking"
       end
 
-      desc "check_hooks NAME", "Check to see if the hooks are configured"
+      desc "check_hooks [PROJECT]", "Check to see if the hooks are configured"
       def check_hooks( name )
         puts "Looking for github hooks".bold
         ##
@@ -340,10 +401,11 @@ module Orchard
         puts "github check: TODO"
       end
 
-      desc "activities NAME", "Shows recent project activities in last week or (default) current week [--lastweek] [--thisweek]"
+      desc "activity [PROJECT]", "Shows recent project activity in last week or (default) current week [--lastweek] [--thisweek]"
       option :lastweek
       option :thisweek
-      def activities( name )
+      def activity( name )
+        puts
         project_id = project_id_from_name name
         return if project_id.nil?
 
@@ -360,35 +422,35 @@ module Orchard
 
         summary
 
-        puts "#{name} Activity for #{summary[:after].strftime( "%Y-%m-%d %H:%M" )} - #{summary[:before].strftime( "%Y-%m-%d %H:%M" )}"
+        puts "#{name} activity".bold + " for #{summary[:after].strftime( "%Y-%m-%d %H:%M" )} (#{((Time.now-summary[:after])/3600/24).ceil} days ago) - #{summary[:before].strftime( "%Y-%m-%d %H:%M" )} (now)"
         puts
-        puts "Activity Summary".bold.blue
+        puts "Activity Summary".underline.blue
         summary[:type].keys.sort.each do |x|
           printf "%-6s %s\n", summary[:type][x].count, x
         end
 
         puts
-        puts "Activity Breakdown".bold.blue
+        puts "Activity Breakdown".underline.blue
         summary[:actors_activites].keys.sort.each do |x|
           summary[:actors_activites][x].keys.select { |x| x}.sort.each do |type|
-            printf "%-6s %-35s %s\n", summary[:actors_activites][x][type].count, type, x
+            printf "%-6s %-25s %s\n", summary[:actors_activites][x][type].count, type.strip_email, x
           end
         end
 
         puts
-        puts "New Tickets".bold.blue
-        (summary[:type]['bugtracking.openticket'] || []).each do |activity|
+        puts "New Tickets".underline.blue
+        (summary[:type]['bugtracking:openticket'] || []).each do |activity|
           puts activity['description'][0..100].gsub( /\n/, " " )
         end
 
         puts
-        puts "Closed Tickets".bold.blue
-        (summary[:type]['bugtracking.closedticket'] || []).each do |activity|
+        puts "Closed Tickets".underline.blue
+        (summary[:type]['bugtracking:closedticket'] || []).each do |activity|
           puts activity['description'][0..100].gsub( /\n/, " " )
         end
 
         puts
-        puts "Active Tickets".bold.blue
+        puts "Active Tickets".underline.blue
         summary[:type].keys.select do |x|
           x =~ /bugtracking/
         end.collect do |x|
@@ -400,9 +462,9 @@ module Orchard
         end
 
         puts
-        puts "Commits".bold.blue
-        (summary[:type]['PushEvent'] || []).each do |x|
-          printf "%-10s %s\n", x['actor_identifier'], x['description'][0..100].gsub( /\n/, " " )
+        puts "Commits".underline.blue
+        (summary[:type]['sourcecontrol:commit'] || []).each do |x|
+          printf "%-30s %s\n", x['actor_identifier'].strip_email, x['description'][0..100].gsub( /\n/, " " )
         end
       end
 
@@ -410,7 +472,7 @@ module Orchard
       def report(name)
         _p = project_id_from_name( name )
         info _p
-        activities _p
+        activity _p
       end
 
       desc "report_dump", "Write out weekly reports"

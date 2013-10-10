@@ -18,7 +18,7 @@ module Orchard
       end
 
       def get_token( type )
-        print "Looking for #{type} token: "
+        #print "Looking for #{type} token: "
         $stderr.flush
         token = case type
         when :hipchat
@@ -34,7 +34,7 @@ module Orchard
         
         throw "Token not found for #{type}" if token.nil? || token == ""
 
-        $stderr.puts "#{token}"
+        #$stderr.puts "#{token}"
         token
       end
     end

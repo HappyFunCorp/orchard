@@ -3,8 +3,23 @@ module Orchard
     class Github < Thor
       desc "hooks REPO", "Lists out service hooks for a given repo"
       def hooks( repo )
+        puts
+        printf "%-20s %-60s\n".blue.underline, 'Name', 'Config'
         client.list_hooks( repo ).each do |hook|
-          printf "%-20s %s\n", hook.name, hook.config
+          printf "%-20s", hook.name
+          cfg = hook.config.collect{|k,v| [k,v]}
+          if hook.config.count > 0
+            cfg.each_with_index do |(k,v),i|
+              if i>0
+                printf "%-20s %-20s: %-20s\n", '', k, v.inspect
+              else
+                printf " %-20s: %-20s\n", k, v.inspect
+              end
+            end
+          else
+            puts "\n"
+          end
+          puts
         end
       end
 
@@ -20,16 +35,22 @@ module Orchard
 
       desc "repos", "Lists out the repos"
       def repos
+        puts
+        printf "%-50s %-40s\n".blue.underline, 'Name', 'Description'
         client.list_repos.each do |repo|
-          printf "%-40s %s\n", repo['full_name'], repo['description']
+          printf "%-50s %-40s\n", repo['full_name'], repo['description']
         end
+        puts
       end
 
       desc "repo_search NAME", "Lists out matching repos"
       def repo_search( name )
+        puts
+        printf "%-50s %-40s\n".blue.underline, 'Name', 'Description'
         client.list_repos(name).each do |repo|
-          printf "%-40s %s\n", repo['full_name'], repo['description']
+          printf "%-50s %-40s\n", repo['full_name'], repo['description']
         end
+        puts
       end
 
       desc "repo_create TEAM, NAME", "Create team repo"
@@ -55,19 +76,27 @@ module Orchard
 
       desc "team_repos TEAM", "List out a teams repos"
       def team_repos( team )
+        puts
+        printf "%-40s %-40s\n".blue.underline, 'Name', 'Description'
         client.list_team_repos( team ).each do |repo|
-          printf "%-40s %s\n", repo['full_name'], repo['description']
+          printf "%-40s %-40s\n", repo['full_name'], repo['description']
         end
+        puts
       end
 
       desc "team TEAM", "List out the team"
       def team( team )  
+        puts
+        printf "%-40s %-40s\n".blue.underline, 'Repo name', 'Description'
         client.list_team_repos( team ).each do |repo|
-          printf "Repo: %-40s %s\n", repo['full_name'], repo['description']
+          printf "%-40s %s\n", repo['full_name'], repo['description']
         end
+        puts
+        printf "%-30s\n".blue.underline, 'Github users'
         client.list_team_members( team ).each do |user|
-          printf "User: %s\n", user['login']
+          printf "%s\n", user['login']
         end
+        puts
       end
 
       desc "team_create TEAM", "Create a team"
