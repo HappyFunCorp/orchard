@@ -1,5 +1,7 @@
 ## Orchard is a command line tool to manage projects with HappyFunJuice.
 
+There's also a bot.
+
 It integrates with
 
 * HappyFunJuice
@@ -117,4 +119,10 @@ The following environment variables will be used if set, otherwise they will be 
     GITHUB_API_TOKEN'] || juice_client.auth( "github" )
     HEROKU_API_TOKEN'] || juice_client.auth( "heroku" )
 
+## BOT
 
+    cd litabot
+    bundle
+    lita
+
+Commands for the bot are in orchard/bot.rb.  Still needs work.

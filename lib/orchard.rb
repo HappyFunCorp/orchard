@@ -12,6 +12,12 @@ require 'orchard/version'
 
 require 'pp'
 
+begin
+  Lita
+  require 'orchard/bot'
+rescue NameError
+end
+
 module Orchard
 
 end

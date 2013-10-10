@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*"] + ["Rakefile"]
   s.test_files = Dir["test/**/*"]
   s.executables << 'orchard'
+#  s.executables << 'orchard_bot'
 
   s.add_dependency "thor"
   s.add_dependency "hipchat-api"
@@ -23,5 +24,4 @@ Gem::Specification.new do |s|
   s.add_dependency "httparty"
   s.add_dependency "highline"
   s.add_dependency "colorize"
-  s.add_dependency "activesupport"
 end
