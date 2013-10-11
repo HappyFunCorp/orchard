@@ -25,4 +25,10 @@ rescue Orchard::Exceptions::AlreadyLoggedOut
 rescue Psych::SyntaxError
   $stderr.puts "\n\tError during processing: #{$!.message}\n\n"
 
+rescue Heroku::API::Errors::Forbidden
+  puts "\nError: You don't have permission to access this Heroku resource".red
+
+rescue Heroku::API::Errors::NotFound
+  puts "\nError: Heroku resource not found".red
+
 end

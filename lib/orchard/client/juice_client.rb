@@ -71,7 +71,7 @@ module Orchard
 
 
       def project_id_from_name( name )
-        return name if name =~ /^[0-9]+$/
+        return name if name.to_s =~ /^[0-9]+$/
 
         projects.each do |project|
           return project['id'] if project['name'].projectize == name.projectize
@@ -91,9 +91,14 @@ module Orchard
         data
       end
 
+      def lookup_user( query )
+        auth_token
+        self.class.get "/users/lookup?query=#{CGI.escape(query)}"
+      end
+
       def search_users( query )
         auth_token
-        self.class.get "/users/search/#{CGI.escape(query)}"
+        self.class.get "/users/search?query=#{CGI.escape(query)}"
       end
 
       def organization_users( id )
@@ -136,6 +141,66 @@ module Orchard
         auth_token
         self.class.get "/projects/#{id}/feeds.json"
       end
+
+      def environments( id )
+        auth_token
+        self.class.get "/projects/#{id}/environments.json"
+      end
+
+
+      def check( id )
+        auth_token
+        f = feeds( id ).group_by{|x| x['feed_name']}
+        e = environments( id ).group_by{|x| x['name'].downcase}
+
+        status = {
+          sourcecontrol: {passed: true, messages: []},
+          servers: {passed: true, messages: []},
+          bugtracking: {passed: true, messages: []},
+          environments: {passed: true, messages: []}
+        }
+
+        # Check for heroku apps
+        if f['github'].nil?
+          status[:sourcecontrol][:passed] = false
+          status[:sourcecontrol][:messages] << 'No source control is set up'
+        else
+          status[:sourcecontrol][:passed] = true
+        end
+
+        # Check for heroku apps
+        if f['heroku'].nil?
+          status[:servers][:passed] = false
+          status[:servers][:messages] << 'No heroku app is set up'
+        else
+          status[:servers][:passed] = true
+        end
+
+
+        # Check for asana or lighthouse tracking:
+        if f['asana'].nil? and f['lighthouse'].nil?
+          status[:bugtracking][:passed] = false
+          status[:bugtracking][:messages] << 'No bugtracking is set up'
+        else
+          status[:bugtracking][:passed] = true
+        end
+
+
+        # Check for environments:
+        if e['production'].nil?
+          status[:environments][:passed] = false
+          status[:environments][:messages] << "No 'production' environment is set up"
+        end
+
+        if e['staging'].nil?
+          status[:environments][:passed] = false
+          status[:environments][:messages] << "No 'staging' environment is set up"
+        end
+
+        status
+      end
+
+
 
       def auths
         auth_token
@@ -184,6 +249,18 @@ module Orchard
 
         stats
       end
+
+      def heroku_api( token = nil )
+        auth_token
+        ret = {}
+        if( token )
+          ret = self.class.post "/organizations/1/heroku/api_token.json", {query: {heroku_api_token: token}}
+        else
+          ret = self.class.get "/organizations/1/heroku/api_token.json"
+        end
+        ret['heroku_api_token']
+      end
+
 
       def hipchat_api( token = nil )
         auth_token
@@ -251,7 +328,7 @@ module Orchard
 
           response = self.class.post "/auth", {body: { username: username, password: password } }
 
-          raise Exceptions::LoginAuthenticationFailure if response['auth_token'].blank?
+          raise Exceptions::LoginAuthenticationFailure if response['auth_token'].nil?
 
           @options = response.parsed_response
 
@@ -280,9 +357,13 @@ module Orchard
 
 
       def auth_token
-        begin
-          query_login
-        rescue Exceptions::AlreadyLoggedIn
+        if ENV['JUICE_AUTH_TOKEN'].nil?
+          begin
+            query_login
+          rescue Exceptions::AlreadyLoggedIn
+          end
+        else
+          @options = { 'auth_token' => ENV['JUICE_AUTH_TOKEN'] }
         end
         self.class.default_params auth_token: @options['auth_token']
         @options['auth_token']

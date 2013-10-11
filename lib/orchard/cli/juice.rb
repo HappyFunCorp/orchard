@@ -71,7 +71,7 @@ module Orchard
         puts
         project_id = project_id_from_name name
         if( project_id.nil? )
-          puts "#{name} not found"
+          puts "Project #{name} not found"
           return
         end
 
@@ -158,8 +158,9 @@ module Orchard
         info( name )
       end
 
-      desc "lookup_user [EMAIL]", "Looks up a user by email address"
-      def lookup_user( email )
+      desc "lookup_user [NAME]", "Looks up a user by email address"
+      def lookup_user( query )
+        client.lookup_user( query )
       end
 
       desc "search_users [QUERY]", "Look up a user by name, email, github, heroku, etc."
@@ -177,9 +178,48 @@ module Orchard
         client
       end
 
+      desc "heroku_api [TOKEN]", "Sets the organization heroku token"
+      def heroku_api( token )
+        client.heroku_api token
+      end
+
+
       desc "hipchat_api [TOKEN]", "Sets the organization hipchat token"
       def hipchat_api( token )
         client.hipchat_api token
+      end
+
+      desc "check_all", 'Check the state of all projects'
+      def check_all
+        client.projects.each do |project|
+          check_setup(project['name'].projectize)
+        end
+      end
+
+
+      desc "check_setup [PROJECT]", 'Check the state of juice setup'
+      def check_setup( name )
+        project_id = project_id_from_name(name)
+        status = client.check(project_id)
+
+        puts "#{name}:".blue
+        status.each do |category, state|
+          printf "    %-20s", "#{{
+            sourcecontrol: 'Source control',
+            servers: 'Servers',
+            bugtracking: 'Bug tracking',
+            environments: 'Environments'
+          }[category]}: "
+          if state[:passed]
+            printf "\u2713\n".encode('utf-8').green
+          else
+            printf "\u2718\n".encode('utf-8').red
+            state[:messages].each do |message|
+              printf "        #{message}\n".red
+            end
+          end
+        end
+          
       end
 
       desc "check [PROJECT]", "Check a project config (all the checks)"
@@ -420,9 +460,9 @@ module Orchard
 
         summary = client.activities( project_id, after.to_time, before.to_time )
 
-        summary
+        project = client.project( project_id )
 
-        puts "#{name} activity".bold + " for #{summary[:after].strftime( "%Y-%m-%d %H:%M" )} (#{((Time.now-summary[:after])/3600/24).ceil} days ago) - #{summary[:before].strftime( "%Y-%m-%d %H:%M" )} (now)"
+        puts "#{project['name']} activity".bold + " for #{summary[:after].strftime( "%Y-%m-%d %H:%M" )} (#{((Time.now-summary[:after])/3600/24).round(1)} days ago) - #{summary[:before].strftime( "%Y-%m-%d %H:%M" )} (now)"
         puts
         puts "Activity Summary".underline.blue
         summary[:type].keys.sort.each do |x|
@@ -440,13 +480,15 @@ module Orchard
         puts
         puts "New Tickets".underline.blue
         (summary[:type]['bugtracking:openticket'] || []).each do |activity|
-          puts activity['description'][0..100].gsub( /\n/, " " )
+          printf "%-15s %-100s\n", activity['actor_identifier'], activity['description'][0..100].gsub( /\n/, " " )
+          #puts activity['description'][0..100].gsub( /\n/, " " )
         end
 
         puts
         puts "Closed Tickets".underline.blue
         (summary[:type]['bugtracking:closedticket'] || []).each do |activity|
-          puts activity['description'][0..100].gsub( /\n/, " " )
+          printf "%-15s %-100s\n", activity['actor_identifier'], activity['description'][0..100].gsub( /\n/, " " )
+          #puts activity['description'][0..100].gsub( /\n/, " " )
         end
 
         puts

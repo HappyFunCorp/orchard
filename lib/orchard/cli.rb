@@ -1,6 +1,7 @@
 require 'orchard/cli/hipchat'
 require 'orchard/cli/github'
 require 'orchard/cli/juice'
+require 'orchard/cli/heroku'
 
 module Orchard
   module CLI
@@ -29,6 +30,9 @@ module Orchard
 
       desc "juice COMMANDS", "Juice Control Module"
       subcommand "juice", Orchard::CLI::Juice
+
+      desc "heroku COMMANDS", "Heroku Control Module"
+      subcommand "heroku", Orchard::CLI::Heroku
     end
   end
 end

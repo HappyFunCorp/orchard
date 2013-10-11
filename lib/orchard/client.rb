@@ -1,6 +1,7 @@
 require 'orchard/client/hipchat_client'
 require 'orchard/client/github_client'
 require 'orchard/client/juice_client'
+require 'orchard/client/heroku_client'
 
 module Orchard
   module Client
@@ -17,16 +18,22 @@ module Orchard
         @juice_client ||= Orchard::Client::JuiceClient.new
       end
 
+      def heroku_client
+        @heroku_client ||= Orchard::Client::HerokuClient.new( Heroku::API.new( api_key: get_token( :heroku ) ) )
+      end
+
       def get_token( type )
         #print "Looking for #{type} token: "
-        $stderr.flush
+        #$stderr.flush
         token = case type
         when :hipchat
           ENV['HIPCHAT_API_TOKEN'] || juice_client.hipchat_api
         when :github
           ENV['GITHUB_API_TOKEN'] || juice_client.auth( "github" )
         when :heroku
-          ENV['HEROKU_API_TOKEN'] || juice_client.auth( "heroku" )
+          # Opt for the organization-wide heroku api token:
+          ENV['HEROKU_API_TOKEN'] || juice_client.heroku_api
+          #ENV['HEROKU_API_TOKEN'] || juice_client.auth( "heroku" )
         else
           throw "Unknown token type #{type}".red
         end
