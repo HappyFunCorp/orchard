@@ -18,7 +18,7 @@ require 'pp'
 
 begin
   Lita
-  require 'orchard/bot'
+  require 'orchard/chatbot/bot'
 rescue NameError
 end
 

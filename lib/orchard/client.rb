@@ -23,9 +23,13 @@ module Orchard
       end
 
       def get_token( type )
-        #print "Looking for #{type} token: "
-        #$stderr.flush
         token = case type
+
+        #when :juice
+          # Don't use this. This is already handled together with the login
+          # stuff in JuiceClient. It could be refactored to fit in with this
+          # method a little better, but what'd be the point? It works and
+          # it's straightforward.
         when :hipchat
           ENV['HIPCHAT_API_TOKEN'] || juice_client.hipchat_api
         when :github
@@ -33,6 +37,7 @@ module Orchard
         when :heroku
           # Opt for the organization-wide heroku api token:
           ENV['HEROKU_API_TOKEN'] || juice_client.heroku_api
+          # Instead of per-user heroku auth:
           #ENV['HEROKU_API_TOKEN'] || juice_client.auth( "heroku" )
         else
           throw "Unknown token type #{type}".red
@@ -41,7 +46,6 @@ module Orchard
         
         throw "Token not found for #{type}" if token.nil? || token == ""
 
-        #$stderr.puts "#{token}"
         token
       end
     end
