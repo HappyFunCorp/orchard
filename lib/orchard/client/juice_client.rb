@@ -26,7 +26,6 @@ module Orchard
           return response
         end
 
-
       end
 
       base_uri ENV['JUICE_API_ENDPOINT'] || 'http://happyfunjuice.com/api'
@@ -69,6 +68,26 @@ module Orchard
         end
       end
 
+      def project_info_from_room( room )
+        auth_token
+        if room =~ /[0-9]+_[^@]+@.*/
+          room_name = Orchard::Client.hipchat_client.room_name_from_xmpp_jid( room )
+        else
+          room_name = room
+        end
+        return nil if room_name.nil? or room_name.length==0
+        projects.select{|x| (x['orchard_config']['hipchat_room'].downcase rescue nil) == room_name.downcase}.first
+      end
+
+      def project_id_from_room( room )
+        @project_ids_from_rooms ||= {}
+        p = project_info_from_room( room )
+        if p.nil?
+          nil
+        else
+          @project_ids_from_rooms[room] ||= p['id']
+        end
+      end
 
       def project_id_from_name( name )
         return name if name.to_s =~ /^[0-9]+$/
@@ -218,7 +237,7 @@ module Orchard
       def activities( project_id, after, before = Time.now )
         auth_token
         activities = self.class.get "/projects/#{project_id}/activities.json", {query: { after: after.to_i, before: before.to_i } }
-        activities_stats activities, after, before
+        activities_stats activities, after, before # <-- so activities actually returns activities_stats? That's... weird.
       end
 
       def activities_stats( activities, after, before )
@@ -226,7 +245,7 @@ module Orchard
                   actors_activites: {}, 
                   activities: activities, 
                   after: after, 
-                  before: before, 
+                  beore: before, 
                   active_tickets: {},
                   closed_tickets: {}}
 

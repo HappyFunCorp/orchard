@@ -25,6 +25,10 @@ module Orchard
         @rooms
       end
 
+      def room_name_from_xmpp_jid( name )
+        rooms.select{|x| x['xmpp_jid'] == name}.first['name'] rescue nil
+      end
+
       def room_by_name( name )
         rooms.each do |r|
           return r if r['name'] == name
