@@ -5,15 +5,16 @@ require 'httparty'
 module Orchard
   class Bot < Lita::Handler
     route /^echo\s+(.+)/, :echo, command: true, help: { "echo test" => "Replies back with test" }
-    route /^(wtf|what)\s*(happened )?([\w\s]*)\??$/i, :wtf, command: true, help: { "wtf" => "Project info." }
+    route /^(wtf|what)\s*(happened )?([\w\s]*)\??$/i, :wtf, command: true, help: { "wtf [time interval]" => "Project activity. Time interval defaults to this week. Options are 'today', 'yesterday', 'this week', 'last week', 'this month', 'last month'.  'wtf happened' and 'what happened' are also valid." }
     route /^project_id/i, :project_id, command: true, help: { 'project_id' => 'Print the juice project id' }
     route /^projects/, :projects, command: true, help: {'projects' => 'A list of Juice projects'}
-    route /^check$/, :check, command: true
+    route /^who\s+is\s+(\w+)\??/i, :whois, command: true, help: {'who is [SEARCH TERM]' => 'Search the rosetta stone for employee info'}
+
+    route /^check$/, :check, command: true #totally incomplete and useless right now.
+    route /^tell (\w+)\s*(he|to)?\s+(.*)/i, :tell, command: true
     route /^chuck$/, :chuck, command: true
     route /^make me a sandwich/, :make_me_a_sandwich, command: true
     route /^sudo make me a sandwich/, :sudo_make_me_a_sandwich, command: true
-    route /^tell (\w+)\s*(he|to)?\s+(.*)/i, :tell, command: true
-    route /^who\s+is\s+(\w+)\??/i, :whois, command: true
 
 
     def whois(response)
@@ -71,22 +72,35 @@ module Orchard
     
     def wtf(response)
 
-      case response.match_data[-1]
+      case response.match_data[-1].strip
+        when 'last month', 'lastmonth', 'last_month'
+          after = (Time.now-1.month).beginning_of_month
+          before = (Time.now-1.month).end_of_month
+        when 'this month', 'thismonth', 'this_month'
+          after = (Time.now).beginning_of_month
+          before = (Time.now).end_of_month
+
         when 'last week', 'lastweek', 'last_week'
           after = (Time.now-1.week).beginning_of_week
           before = (Time.now-1.week).end_of_week
+        when 'this week', 'thisweek', 'this_week'
+          after = (Time.now).beginning_of_week
+          before = (Time.now).end_of_week
+
         when 'today'
           after = (Time.now).beginning_of_day
           before = (Time.now).end_of_day
         when 'yesterday'
           after = (Time.now-1.day).beginning_of_day
           before = (Time.now-1.day).end_of_day
-        when 'this week', 'thisweek', 'this_week'
-          after = (Time.now).beginning_of_week
-          before = (Time.now).end_of_week
         else
-          after = (Time.now).beginning_of_week
-          before = (Time.now).end_of_week
+          if response.match_data[-1].nil? or response.match_data[-1].length==0
+            after = (Time.now).beginning_of_week
+            before = (Time.now).end_of_week
+          else
+            response.reply("Unrecognized time interval, '#{response.match_data[-1]}'. Valid options are today, yesterday, this week, last week, this month, last month.")
+            return
+          end
       end
 
       
@@ -96,6 +110,8 @@ module Orchard
       summary = Client.juice_client.activities( project_id, after, before)
       
       answer = StringIO.new
+
+      answer.printf "Project activity from #{after.strftime('%A, %F')} to #{before.strftime('%A, %F')}\n"
 
       summary[:actors_activites].keys.sort.each do |x|
         summary[:actors_activites][x].keys.reject(&:nil?).sort.each do |type|
