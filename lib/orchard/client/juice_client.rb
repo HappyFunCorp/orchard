@@ -112,12 +112,12 @@ module Orchard
 
       def lookup_user( query )
         auth_token
-        self.class.get "/users/lookup?query=#{CGI.escape(query)}"
+        self.class.get "/users/lookup.json", { query: query }
       end
 
       def search_users( query )
         auth_token
-        self.class.get "/users/search?query=#{CGI.escape(query)}"
+        self.class.get "/users/search.json", { query: query}
       end
 
       def organization_users( id )
@@ -245,7 +245,7 @@ module Orchard
                   actors_activites: {}, 
                   activities: activities, 
                   after: after, 
-                  beore: before, 
+                  before: before, 
                   active_tickets: {},
                   closed_tickets: {}}
 

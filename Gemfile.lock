@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    orchard (0.1a)
+    orchard (0.1.2a)
       colorize
       dnsruby
       github_api

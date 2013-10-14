@@ -160,7 +160,7 @@ module Orchard
 
       desc "lookup_user [NAME]", "Looks up a user by email address"
       def lookup_user( query )
-        client.lookup_user( query )
+        pp client.lookup_user( query )
       end
 
       desc "search_users [QUERY]", "Look up a user by name, email, github, heroku, etc."
@@ -510,11 +510,11 @@ module Orchard
         end
       end
 
-      desc "report", "Because report_dump is weird"
+      desc "report NAME", "Report for an individual project"
+      option :lastweek
       def report(name)
-        _p = project_id_from_name( name )
-        info _p
-        activity _p
+        info name
+        activity name
       end
 
       desc "report_dump", "Write out weekly reports"
