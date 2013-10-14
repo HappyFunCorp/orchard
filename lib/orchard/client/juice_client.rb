@@ -166,6 +166,12 @@ module Orchard
         self.class.get "/projects/#{id}/environments.json"
       end
 
+      def heroku_apps( id )
+        auth_token
+        f = feeds( id ).group_by{|x| x['feed_name']}
+        (f['heroku'] || []).group_by { |x| x['environment']['name'].downcase}
+      end
+
 
       def check( id )
         auth_token

@@ -219,7 +219,14 @@ module Orchard
             end
           end
         end
-          
+
+        apps = client.heroku_apps( project_id ) 
+
+        if( apps['production'] )
+          apps['production'].each do |app|
+            Orchard::CLI::Heroku.new.check app['name']
+          end
+        end
       end
 
       desc "check [PROJECT]", "Check a project config (all the checks)"

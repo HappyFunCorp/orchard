@@ -20,7 +20,7 @@ module Orchard
       end
 
       def nonheroku_domains( app )
-        domains(app).reject{|x| x['base_domain']=="herokuapp.com"}.collect{|x| x['domain']}
+        domains(app).reject{|x| x['base_domain']=="herokuapp.com" || x['domain'] =~ /^www/}.collect{|x| x['domain']}
       end
 
       def addons( app, filter=nil )
