@@ -107,6 +107,14 @@ module Orchard
         printf "%25s: %s", 'Exception handling add-on', result
       end
 
+      desc 'check_deployhooks_appon [APP]', 'Check for deployhooks handling add-on'
+      def check_deployhooks_appon(app)
+        a = client.addons(app, /deploynooks/)
+        names = a.collect{|x| x['name']}.join(', ')
+        result = a.count > 0 ? format_result(:pass, names) : format_result(:fail)
+        printf "%25s: %s", 'Deploy hooks add-on', result
+      end
+
 
       desc 'check_ssl_addon [APP]', 'Check for SSL addon'
       def check_ssl_addon(app)
@@ -190,16 +198,13 @@ module Orchard
         check_backups(app)
         check_stack(app)
         check_exception_handling_addon(app)
+        check_deployhooks_appon(app)
         check_log_monitoring_addon(app)
         check_app_monitoring_addon(app)
         check_ssl_addon(app)
         check_domains(app)
         puts
       end
-
-        
-
-
 
 
 

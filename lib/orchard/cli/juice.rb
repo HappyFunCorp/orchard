@@ -223,7 +223,14 @@ module Orchard
         apps = client.heroku_apps( project_id ) 
 
         if( apps['production'] )
+          puts "Production".blue
           apps['production'].each do |app|
+            Orchard::CLI::Heroku.new.check app['name']
+          end
+        end
+        if( apps['staging'] )
+          puts "Staging".blue
+          apps['staging'].each do |app|
             Orchard::CLI::Heroku.new.check app['name']
           end
         end
@@ -430,6 +437,39 @@ module Orchard
         else
           puts "Teams must be set up correctly in order to monitor hooks.".red
         end
+
+        apps = client.heroku_apps( project_id ) 
+
+
+        if( apps['production'] )
+          puts "Production".blue
+          apps['production'].each do |app|
+            Orchard::CLI::Heroku.new.check app['name']
+            a = heroku_client.addons(app['name'], /deploynooks/)
+
+            if( a.nil? || a.length == 0 )
+              puts "Adding deploy hook".yellow
+              system( "echo heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']} --app #{app['name']}\"")
+              system( "heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']}\" --app #{app['name']}")
+              Orchard::Client::hipchat_client.post_message config['hipchat_room'], "Heroku app: #{app['name']} commit hook now added"
+            end
+          end
+        end
+        if( apps['staging'] )
+          puts "Staging".blue
+          apps['staging'].each do |app|
+            Orchard::CLI::Heroku.new.check app['name']
+            a = heroku_client.addons(app['name'], /deploynooks/)
+
+            if( a.nil? || a.length == 0 )
+              puts "Adding deploy hook".yellow
+              system( "echo heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']} --app #{app['name']}\"")
+              system( "heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']} --app #{app['name']}\"")
+              Orchard::Client::hipchat_client.post_message config['hipchat_room'], "Heroku app: #{app['name']} commit hook now added"
+            end
+          end
+        end
+
       end
 
       desc "hipchat_check", "Prints out all the rooms not assigned to rooms"
@@ -588,6 +628,10 @@ module Orchard
 
         def github_client
           Orchard::Client.github_client
+        end
+
+        def heroku_client
+          Orchard::Client.heroku_client
         end
 
         def project_id_from_name( name )

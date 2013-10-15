@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency "highline"
   s.add_dependency "colorize"
   s.add_dependency "heroku-api"
+  s.add_dependency "heroku"
   s.add_dependency "dnsruby"
   s.add_dependency "whois"
   s.add_dependency "httpclient"
