@@ -44,9 +44,9 @@ module Orchard
         puts
           printf "%-25s %-10s %-10s %-25s\n".blue, '', 'Commits', 'Deploys', '', ''
           printf "%-25s %-10s %-10s %-25s\n".blue, '', 'this', 'this', '', ''
-          printf "%-25s %-10s %-10s %-25s\n".underline.blue, 'Name', 'wk', 'wk', 'Hipchat room', 'Teams'
+          printf "%-25s %-10s %-10s %-25s %s\n".underline.blue, 'Name', 'wk', 'wk', 'Hipchat room', 'Teams'
         client.summary.sort{|a,b| b['name'].to_i <=> a['name'].to_i}.each_with_index do |project,i|
-          printf "%-25s %-10s %-10s %-25s\n".try{|x| i%4==3 ? x.underline : x}, 
+          printf "%-25s %-10s %-10s %-25s %s\n".try{|x| i%4==3 ? x.underline : x}, 
             #project['id'], 
             project['name'].projectize, 
             (project['has_source_feeds'] ? project['commits_this_week'] : ''),
@@ -443,9 +443,45 @@ module Orchard
         end
       end
 
-      desc "github_check", "Prints out all teams not assigned to a project"
-      def github_check
-        puts "github check: TODO"
+      desc "github_team_check", "Prints out all the teams not assigned to projects"
+      option :fix
+      def github_team_check
+        client.github_team_check.each do |team,projects|
+          next if team == 'Owners'
+          next if projects.size > 0
+          puts "#{team} has no juice project".red
+          # printf "%-30s %s\n", team, projects.collect {|x| x['name'] }.join( "," )
+
+          if( options[:fix] )
+            choices = client.projects.collect { |x| x['name'] }
+
+            project = choose do |menu|
+              menu.header = "Select a github team action"
+              menu.prompt = "Please choose a unassigned juice project to associate #{team} with:"
+
+              menu.choice "Ignore" do
+                "ignore"
+              end
+
+              menu.choice "Create a project called #{team}" do
+                "create"
+              end
+
+              menu.choices *choices
+            end
+
+            if( project == "ignore" )
+              puts "Skip it"
+            else
+              if( project == "create" )
+                puts "TODO: Create a new project called #{team}"
+              else
+                add_team project, team
+                # puts "Attaching to: #{project}"
+              end
+            end
+          end
+        end
       end
 
       desc "activity [PROJECT]", "Shows recent project activity in last week or (default) current week [--lastweek] [--thisweek]"

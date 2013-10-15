@@ -320,6 +320,24 @@ module Orchard
         end
       end
 
+      def github_team_check
+        github_client = Orchard::Client.github_client
+
+        teams = {}
+        github_client.list_teams.each do |team|
+          teams[team.name] = []
+        end
+
+        projects.each do |project|
+          project['orchard_config']['teams'].each do |x|
+            teams[x] << project
+          end
+        end
+
+        teams
+      end
+
+
       def config_file
         "#{ENV['HOME']}/.juice.yml"
       end
