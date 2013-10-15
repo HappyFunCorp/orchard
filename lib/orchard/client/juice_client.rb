@@ -179,6 +179,7 @@ module Orchard
         e = environments( id ).group_by{|x| x['name'].downcase}
 
         status = {
+          
           sourcecontrol: {passed: true, messages: []},
           servers: {passed: true, messages: []},
           bugtracking: {passed: true, messages: []},

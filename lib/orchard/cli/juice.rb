@@ -445,7 +445,7 @@ module Orchard
           puts "Production".blue
           apps['production'].each do |app|
             Orchard::CLI::Heroku.new.check app['name']
-            a = heroku_client.addons(app['name'], /deploynooks/)
+            a = heroku_client.addons(app['name'], /deployhooks/)
 
             if( a.nil? || a.length == 0 )
               puts "Adding deploy hook".yellow
@@ -459,7 +459,7 @@ module Orchard
           puts "Staging".blue
           apps['staging'].each do |app|
             Orchard::CLI::Heroku.new.check app['name']
-            a = heroku_client.addons(app['name'], /deploynooks/)
+            a = heroku_client.addons(app['name'], /deployhooks/)
 
             if( a.nil? || a.length == 0 )
               puts "Adding deploy hook".yellow
