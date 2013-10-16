@@ -63,7 +63,7 @@ module Orchard
         self.class.new.info( name )
       end
 
-
+=begin
       desc "info [NAME]", "Get project metadata"
       def info( name )
         puts
@@ -102,6 +102,7 @@ module Orchard
         end
         data
       end
+=end
 
       desc "organizations", "Get a list of your organizations"
       def organizations
@@ -188,6 +189,39 @@ module Orchard
       def hipchat_api( token )
         client.hipchat_api token
       end
+
+      desc "status NAME", "Shows configuration status of project NAME"
+      def status( name )
+        status = Orchard::Status::Status.new( name )
+
+        status.header "#{name}: Juice Configuration"
+        status.check "Project Exists", :project_found
+        status.check "Source Control", :source_control
+        status.check "Github Teams", :github_teams
+        status.check "Bug Tracking", :bugtracking
+        status.check "Hipchat Room", :hipchat
+
+        status.header "#{name}: Team Configuration"
+
+        status.team_status.each do |team|
+          
+        end
+
+        status.repo_status.each do |repo|
+          status.header "#{name}: Repo #{repo.name} Configuration"
+          
+        end
+
+        status.header "#{name}: Environments"
+        status.check "Production", :production
+        status.check "Staging", :staging
+
+        status.environment_status.each do |env|
+          status.header "#{name}: #{env.name} Configuration"
+          
+        end
+      end
+=begin
 
       desc "check_all", 'Check the state of all projects'
       def check_all
@@ -523,6 +557,7 @@ module Orchard
           end
         end
       end
+=end
 
       desc "activity [PROJECT]", "Shows recent project activity in last week or (default) current week [--lastweek] [--thisweek]"
       option :lastweek

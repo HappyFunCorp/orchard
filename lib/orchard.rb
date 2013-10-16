@@ -12,6 +12,7 @@ require 'orchard/domain_checker'
 require 'orchard/exceptions'
 require 'orchard/cli'
 require 'orchard/client'
+require 'orchard/status/status'
 require 'orchard/version'
 
 require 'pp'

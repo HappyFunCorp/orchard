@@ -101,6 +101,8 @@ module Orchard
       end
 
       def project( id )
+        return nil if id.nil?
+
         auth_token
         data = self.class.get "/projects/#{id}.json"
 
@@ -171,62 +173,6 @@ module Orchard
         f = feeds( id ).group_by{|x| x['feed_name']}
         (f['heroku'] || []).group_by { |x| x['environment']['name'].downcase}
       end
-
-
-      def check( id )
-        auth_token
-        f = feeds( id ).group_by{|x| x['feed_name']}
-        e = environments( id ).group_by{|x| x['name'].downcase}
-
-        status = {
-          
-          sourcecontrol: {passed: true, messages: []},
-          servers: {passed: true, messages: []},
-          bugtracking: {passed: true, messages: []},
-          environments: {passed: true, messages: []}
-        }
-
-        # Check for heroku apps
-        if f['github'].nil?
-          status[:sourcecontrol][:passed] = false
-          status[:sourcecontrol][:messages] << 'No source control is set up'
-        else
-          status[:sourcecontrol][:passed] = true
-        end
-
-        # Check for heroku apps
-        if f['heroku'].nil?
-          status[:servers][:passed] = false
-          status[:servers][:messages] << 'No heroku app is set up'
-        else
-          status[:servers][:passed] = true
-        end
-
-
-        # Check for asana or lighthouse tracking:
-        if f['asana'].nil? and f['lighthouse'].nil?
-          status[:bugtracking][:passed] = false
-          status[:bugtracking][:messages] << 'No bugtracking is set up'
-        else
-          status[:bugtracking][:passed] = true
-        end
-
-
-        # Check for environments:
-        if e['production'].nil?
-          status[:environments][:passed] = false
-          status[:environments][:messages] << "No 'production' environment is set up"
-        end
-
-        if e['staging'].nil?
-          status[:environments][:passed] = false
-          status[:environments][:messages] << "No 'staging' environment is set up"
-        end
-
-        status
-      end
-
-
 
       def auths
         auth_token
