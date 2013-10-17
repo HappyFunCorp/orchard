@@ -72,10 +72,8 @@ module Orchard
         client.stack( @server ) == 'cedar'
       end
 
-      def domain_status
-        client.nonheroku_domains( @server ).collect do |domain|
-          Domain.new( @project, domain )
-        end
+      def domains
+        client.nonheroku_domains( @server )
       end
     end
   end

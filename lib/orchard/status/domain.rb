@@ -5,9 +5,9 @@ require 'httpclient'
 module Orchard
   module Status
     class Domain
-      attr_accessor :project, :domain, :res
+      attr_accessor :project, :domain, :res, :environment
 
-      def initialize( project, domain )
+      def initialize( project, environment, domain )
         @project = project
         @domain = domain
         @res = Dnsruby::Resolver.new

@@ -32,6 +32,20 @@ module Orchard
         end
       end
 
+      def domains_status
+        @domains_status ||= domains.collect do |env, domain|
+          Domain.new( @project, env, domain )
+        end
+      end
+
+      def domains
+        environment_status.collect do |x| 
+          x.domains.collect do |domain|
+            {environment: x.environment, domain: domain }
+          end
+        end.flatten
+      end
+
       def config
         @config ||= (@juice_client.project( @juice_id ) || {})['orchard_config']
       end
