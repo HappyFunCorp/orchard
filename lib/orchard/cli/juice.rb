@@ -190,9 +190,9 @@ module Orchard
         client.hipchat_api token
       end
 
-      desc "status NAME", "Shows configuration status of project NAME"
+      desc "status NAME", "Shows full configutation status of project NAME"
       def status( name )
-        status = Orchard::Status::Status.new( name )
+        status = Orchard::Status::Project.new( name )
 
         status.header "#{name}: Juice Configuration"
         status.check "Project Exists", :project_found
@@ -201,15 +201,30 @@ module Orchard
         status.check "Bug Tracking", :bugtracking
         status.check "Hipchat Room", :hipchat
 
-        status.header "#{name}: Team Configuration"
+        status.header "#{name}: Team Configuration (#{status.github_teams.join(',')})"
+        status.github_members.each do |m|
+          member = m[:name]
+          access = m[:access]
+          # puts member
+          juice_user = client.user_from_github_user member
+          if access == :read
+            printf "%-20s %15s".yellow, member, "readonly"
+          else
+            printf "%-20s %15s".green, member, "fullaccess"
+          end
 
-        status.team_status.each do |team|
-          
+          if juice_user
+            printf " %-20s %s\n", juice_user['name'], juice_user['email']
+          else
+            puts " Unknown to juice".red
+          end
         end
 
         status.repo_status.each do |repo|
-          status.header "#{name}: Repo #{repo.name} Configuration"
-          
+          status.header "#{repo.name} Configuration"
+
+          repo.check "Private", :private?
+          repo.check "Hipchat Deployhook", :hipchat_hook
         end
 
         status.header "#{name}: Environments"
@@ -217,8 +232,20 @@ module Orchard
         status.check "Staging", :staging
 
         status.environment_status.each do |env|
-          status.header "#{name}: #{env.name} Configuration"
+          status.header "#{name}: #{env.server} Configuration"
           
+          env.check "Dyno Redundancy", :dyno_redundancy
+          env.check "Database", :database
+          env.check "Backups", :backups
+          env.check "Stack", :stack
+          env.check "Exception Handling", :exception_handling
+          env.check "Deploy Hooks", :deployhooks
+          env.check "Log Monitoring", :log_monitoring
+          env.check "App Monitoring", :app_monitoring
+          env.check "SSL", :ssl
+
+          # check_domains(app)
+
         end
       end
 =begin

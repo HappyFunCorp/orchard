@@ -114,12 +114,17 @@ module Orchard
 
       def lookup_user( query )
         auth_token
-        self.class.get "/users/lookup.json", { query: query }
+        self.class.get "/users/lookup.json", { query: { query: query } }
       end
 
       def search_users( query )
         auth_token
-        self.class.get "/users/search.json", { query: query}
+        self.class.get "/users/search.json", { query: { query: query } }
+      end
+
+      def user_from_github_user( github )
+        @github_users ||= {}
+        @github_users[github] ||= search_users(github).select { |x| x['github_handle'] == github }.first
       end
 
       def organization_users( id )

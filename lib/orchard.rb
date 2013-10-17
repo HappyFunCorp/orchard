@@ -8,11 +8,11 @@ require 'orchard/core_ext/string'
 require 'orchard/core_ext/object'
 require 'orchard/core_ext/fixnum'
 
-require 'orchard/domain_checker'
+# require 'orchard/domain_checker'
 require 'orchard/exceptions'
 require 'orchard/cli'
 require 'orchard/client'
-require 'orchard/status/status'
+require 'orchard/status/project'
 require 'orchard/version'
 
 require 'pp'

@@ -1,9 +1,10 @@
 require 'orchard/status/team'
+require 'orchard/status/repo'
 require 'orchard/status/environment'
 
 module Orchard
   module Status
-    class Status
+    class Project
       attr_accessor :name, :juice_id
 
       def initialize( name, resolve = false )
@@ -14,19 +15,21 @@ module Orchard
 
 
       def team_status
-        (github_teams || []).collect do |team|
+        @teams ||= (github_teams || []).collect do |team|
           Team.new( self, team )
         end
       end
 
       def repo_status
-        # TODO
-        []
+        @repos ||= (repos || []).collect do |name, repo|
+          Repo.new( self, name, repo )
+        end
       end
 
       def environment_status
-        # TODO
-        []
+        @environment_status ||= (servers || []).collect do |server|
+          Environment.new( self, server['name'], server['environment']['name'].downcase )
+        end
       end
 
       def config
@@ -44,6 +47,38 @@ module Orchard
       def project_found
         !@juice_id.nil? && @juice_id != ""
       end
+
+      def read_only_teams
+        team_status.select { |team| team.read_only? }
+      end
+
+      def write_teams
+        team_status.select { |team| !team.read_only? }
+      end
+
+      def github_members
+        read_only_members = read_only_teams.collect { |ts| ts.members }.flatten
+        write_team_members = write_teams.collect { |ts| ts.members }.flatten
+
+        read_only_members -= write_team_members
+
+        write_team_members.collect do |x| 
+          {name: x, access: :full}
+        end + read_only_members.collect do |x| 
+          {name: x, access: :read}
+        end
+      end
+
+      def repos
+        ret = {}
+        team_status.each do |x|
+          x.repos.each do |repo|
+            ret[repo.full_name] = repo
+          end
+        end
+        ret
+      end
+
 
       def source_control
         feeds['github']

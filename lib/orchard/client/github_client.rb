@@ -8,6 +8,8 @@ module Orchard
       end
 
       def list_repos( filter = nil )
+        return @repos if @repos && filter.nil?
+
         repos = []
         @client.repos.list( org: "sublimeguile" ).each_page do |page|
           page.each do |r|
@@ -19,9 +21,12 @@ module Orchard
           repos = repos.select { |x| x['name'] =~ /#{filter}/ }
         end
 
-        repos.sort do |a,b| 
+        repos = repos.sort do |a,b| 
           a['name'] <=> b['name']
         end
+
+        @repos = repos if filter.nil?
+        repos
       end
 
       def repo_create( team, name )
@@ -49,6 +54,10 @@ module Orchard
 
       def find_team_from_name( name )
         list_teams.select { |x| x['name'] == name }
+      end
+
+      def list_team( team )
+        find_team_from_name( team ).first
       end
 
       def list_team_repos( team )
