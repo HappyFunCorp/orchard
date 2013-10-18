@@ -71,7 +71,7 @@ GEM
       mime-types (>= 1.16)
     rubyzip (0.9.9)
     thor (0.18.1)
-    whois (3.1.2)
+    whois (3.3.1)
 
 PLATFORMS
   ruby

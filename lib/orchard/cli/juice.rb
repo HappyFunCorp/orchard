@@ -232,7 +232,7 @@ module Orchard
         status.check "Staging", :staging
 
         status.environment_status.each do |env|
-          status.header "#{name}: #{env.server} Configuration"
+          status.header "Server: #{env.server} Configuration"
           
           env.check "Dyno Redundancy", :dyno_redundancy
           env.check "Database", :database
@@ -242,11 +242,21 @@ module Orchard
           env.check "Deploy Hooks", :deployhooks
           env.check "Log Monitoring", :log_monitoring
           env.check "App Monitoring", :app_monitoring
-          env.check "SSL", :ssl
-
-          # check_domains(app)
-
+          env.check "SSL Addon", :ssl
         end
+
+        status.domains_status.each do |domain|
+
+          status.header "DNS: #{domain.domain} configuration"
+
+          domain.check "Registered?", :registered?
+          domain.check "Expires", :expires
+          domain.check "Owner", :owner
+          domain.check "SSL Cert", :ssl_exists?
+          domain.check "SSL Expires", :ssl_valid_until
+          domain.check "SSL Common Name", :ssl_common_name
+        end
+
       end
 =begin
 

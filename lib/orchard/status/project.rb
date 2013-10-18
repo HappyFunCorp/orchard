@@ -1,5 +1,6 @@
 require 'orchard/status/team'
 require 'orchard/status/repo'
+require 'orchard/status/domain'
 require 'orchard/status/environment'
 
 module Orchard
@@ -33,8 +34,8 @@ module Orchard
       end
 
       def domains_status
-        @domains_status ||= domains.collect do |env, domain|
-          Domain.new( @project, env, domain )
+        @domains_status ||= domains.collect do |x|
+          Domain.new( @project, x[:environment], x[:domain] )
         end
       end
 

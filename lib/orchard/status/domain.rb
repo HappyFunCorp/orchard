@@ -9,6 +9,7 @@ module Orchard
 
       def initialize( project, environment, domain )
         @project = project
+        @environment = environment
         @domain = domain
         @res = Dnsruby::Resolver.new
       end
@@ -76,7 +77,25 @@ module Orchard
           p = c.get( "https://#{domain}")
           @ssl = p.peer_cert
         end
+        return nil if( ssl_common_name.nil? )
         @ssl
+      end
+
+      def ssl_exists?
+        !ssl.nil?
+      end
+
+      def ssl_valid_until
+        return nil if ssl.nil?
+        ssl.not_after
+      end
+
+      def ssl_common_name
+        ssl if @ssl.nil?
+        return nil if @ssl.nil?
+        ret = (@ssl.subject.to_a.select { |x| x[0] == 'CN' }.first || [])[1]
+        return nil if ( ret =~ /herokuapp/ )
+        ret
       end
 
       ## Details
@@ -119,7 +138,7 @@ module Orchard
       end
       
       def whois
-        @whois ||= Whois.query @domain
+        @whois ||= Whois.lookup @domain
       end
 
       def parse_answer( type, domains = false )
@@ -177,6 +196,30 @@ module Orchard
         
         return true
       end
+
+      def check key, method
+        ret = __send__( method )
+        ret = false if ret.nil?
+        ret = false if ret == []
+        ret = ret.collect { |x| x[:name] || x['name'] }.join( "," ) if ret.is_a? Array
+
+        pass = ret
+
+        if( ret.is_a? Integer )
+          if( method == :dyno_redundancy)
+            pass = ret > 1
+            ret = "#{ret} dynos"
+          end
+        end
+
+        printf "%20s: ", key
+        if( pass )
+          printf "\u2713 #{ret}\n".encode('utf-8').green
+        else
+          printf "\u2718 #{ret}\n".encode('utf-8').red
+        end
+      end
+
     end
   end
 end

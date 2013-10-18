@@ -49,7 +49,7 @@ module Orchard
       end
 
       def deployhooks
-        client.addons(@server, /deploynooks/)
+        client.addons(@server, /deployhooks/)
       end
 
       def ssl
