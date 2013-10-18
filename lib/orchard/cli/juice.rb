@@ -191,8 +191,9 @@ module Orchard
       end
 
       desc "status NAME", "Shows full configutation status of project NAME"
+      option :resolve
       def status( name )
-        status = Orchard::Status::Project.new( name )
+        status = Orchard::Status::Project.new( name, options[:resolve] )
 
         status.header "#{name}: Juice Configuration"
         status.check "Project Exists", :project_found
@@ -201,7 +202,11 @@ module Orchard
         status.check "Bug Tracking", :bugtracking
         status.check "Hipchat Room", :hipchat
 
-        status.header "#{name}: Team Configuration (#{status.github_teams.join(',')})"
+        status.header "#{name}: Environments"
+        status.check "Production", :production
+        status.check "Staging", :staging
+
+        status.header "#{name}: Team Configuration (#{status.github_teams.join(',')})" if status.github_teams.length > 0
         status.github_members.each do |m|
           member = m[:name]
           access = m[:access]
@@ -226,10 +231,6 @@ module Orchard
           repo.check "Private", :private?
           repo.check "Hipchat Deployhook", :hipchat_hook
         end
-
-        status.header "#{name}: Environments"
-        status.check "Production", :production
-        status.check "Staging", :staging
 
         status.environment_status.each do |env|
           status.header "Server: #{env.server} Configuration"

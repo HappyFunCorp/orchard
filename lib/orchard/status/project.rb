@@ -131,7 +131,8 @@ module Orchard
       end
 
       def github_teams
-        return nil if config.nil?
+        # return []] if @juice_id.nil?
+        return [] if config.nil?
         config['teams'] 
       end
 
@@ -143,6 +144,7 @@ module Orchard
       def check key, method
         ret = __send__( method )
         ret = false if ret.nil?
+        ret = false if ret.is_a? Array and ret.length == 0
         printf "%20s: ", key
         if( ret )
           printf "\u2713\n".encode('utf-8').green
