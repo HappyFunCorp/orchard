@@ -25,6 +25,11 @@ module Orchard
         hooks['hipchat']
       end
 
+      def resolve_hipchat_hook
+        puts "Adding hipchat hook...".yellow
+        Orchard::CLI::Github.new.add_hipchat( repo['full_name'], @project.hipchat ) if @project.hipchat
+      end
+
       def check key, method
         ret = __send__( method )
         ret = false if ret.nil?
@@ -33,6 +38,11 @@ module Orchard
           printf "\u2713\n".encode('utf-8').green
         else
           printf "\u2718\n".encode('utf-8').red
+
+          if( @project.resolve )
+            r = "resolve_#{method}".to_sym
+            __send__(r) if respond_to? r
+          end
         end
       end
 

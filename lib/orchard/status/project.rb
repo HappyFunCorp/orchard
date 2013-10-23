@@ -2,18 +2,36 @@ require 'orchard/status/team'
 require 'orchard/status/repo'
 require 'orchard/status/domain'
 require 'orchard/status/environment'
+require 'orchard/status/project_resolver'
 
 module Orchard
   module Status
     class Project
-      attr_accessor :name, :juice_id
+      attr_accessor :name, :juice_id, :juice_client, :resolve
 
       def initialize( name, resolve = false )
         @name = name
         @juice_client = Orchard::Client.juice_client
-        @juice_id = @juice_client.project_id_from_name @name
+        reload
+        @resolve = resolve
+        @resolver = ProjectResolver.new( self )
       end
 
+      def reload
+        @juice_id = @juice_client.project_id_from_name @name
+        @teams = nil
+        @repos = nil
+        @environment_status = nil
+        @domains_status = nil
+        @config = nil
+        @feeds = nil
+        @environments = nil
+      end
+
+
+      ##
+      # Sub status systems
+      ##
 
       def team_status
         @teams ||= (github_teams || []).collect do |team|
@@ -39,6 +57,10 @@ module Orchard
         end
       end
 
+      ##
+      # Project Metadata
+      ##
+
       def domains
         environment_status.collect do |x| 
           x.domains.collect do |domain|
@@ -58,6 +80,10 @@ module Orchard
       def environments
         @environments ||= @juice_client.environments( @juice_id ).group_by{|x| x['name'].downcase}
       end
+
+      ##
+      # Checks
+      ##
 
       def project_found
         !@juice_id.nil? && @juice_id != ""
@@ -94,9 +120,20 @@ module Orchard
         ret
       end
 
+      def repos_setup
+        repos.keys
+      end
 
       def source_control
-        feeds['github']
+        a = (feeds['github'] || []).collect { |x| "#{x['namespace']}/#{x['name']}" }
+        b = repos_setup
+
+        return false if (a-b).length != 0 || (b-a).length != 0
+        return false if a.length == 0 || b.length == 0
+        return a
+      end
+
+      def all_repos_tracked
       end
 
       def servers( env = nil )
@@ -145,11 +182,23 @@ module Orchard
         ret = __send__( method )
         ret = false if ret.nil?
         ret = false if ret.is_a? Array and ret.length == 0
+
+        pass = ret
+
+        ret = ret.join( ", " ) if ret.is_a? Array
+
+        ret = "" if !ret
+
         printf "%20s: ", key
-        if( ret )
-          printf "\u2713\n".encode('utf-8').green
+        if( pass )
+          printf "\u2713 #{ret}\n".encode('utf-8').green
         else
-          printf "\u2718\n".encode('utf-8').red
+          printf "\u2718 #{ret}\n".encode('utf-8').red
+          if @resolve
+            r = "resolve_#{method}".to_sym
+            @resolver.__send__(r) if @resolver.respond_to? r
+            reload
+          end
         end
       end
     end
