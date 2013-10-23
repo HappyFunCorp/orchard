@@ -13,7 +13,13 @@ module Orchard
         ret = __send__( method )
         ret = false if ret.nil?
         ret = false if ret == []
-        ret = ret.collect { |x| x[:name] || x['name'] }.join( "," ) if ret.is_a? Array
+        ret = ret.collect do |x|
+          if( x.is_a? Hash )
+            x[:name] || x['name']
+          else
+            x
+          end
+        end.join( "," ) if ret.is_a? Array
 
         pass = ret
 
@@ -57,11 +63,11 @@ module Orchard
       end
 
       def backups
-        client.backups(@server)
+        client.backups(@server).collect { |x| x[:plan] }
       end
 
       def database
-        client.databases(@server)
+        client.databases(@server).collect { |x| x[:plan] }
       end
 
       def dyno_redundancy
