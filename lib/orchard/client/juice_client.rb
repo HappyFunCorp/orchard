@@ -173,6 +173,11 @@ module Orchard
         self.class.get "/projects/#{id}/feeds.json"
       end
 
+      def add_feed( project_id, feed_type, key, environment = nil )
+        auth_token
+        self.class.post "/projects/#{project_id}/feeds", {query: { feed_type: feed_type, key: key } }
+      end
+
       def environments( id )
         auth_token
         self.class.get "/projects/#{id}/environments.json"

@@ -128,9 +128,11 @@ module Orchard
         configured = (@project.feeds['github'] || []).collect { |x| "#{x['namespace']}/#{x['name']}" }
 
         (repos-configured).each do |repo|
-          # TODO
-          puts "Need to wire up #{repo}".yellow
+          puts "Adding feed #{repo}".yellow
+
+          pp juice_client.add_feed( @project.juice_id, 'github', repo )
         end
+        # exit
       end
 
       def resolve_github_members
