@@ -137,6 +137,11 @@ module Orchard
         self.class.get "/projects/#{id}/users.json"
       end
 
+      def project_add_user( project_id, user_id )
+        auth_token
+        self.class.post "/projects/#{project_id}/users/#{user_id}"
+      end
+
       def project_config( id, config = nil )
         auth_token
         if( config.nil? )

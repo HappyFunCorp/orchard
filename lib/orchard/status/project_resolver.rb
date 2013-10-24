@@ -166,6 +166,16 @@ module Orchard
           end
         end while github != "done"
       end
+
+      def resolve_juice_users_synced
+        not_in_juice = @project.juice_users_synced_diff
+
+        not_in_juice.each do |user_id|
+          puts "Adding juice user_id: #{user_id}".yellow
+
+          juice_client.project_add_user( @project.juice_id, user_id )
+        end
+      end
     end
   end
 end

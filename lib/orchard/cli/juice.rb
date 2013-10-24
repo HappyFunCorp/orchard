@@ -57,13 +57,6 @@ module Orchard
         puts
       end
 
-      # Alias for 'info' command
-      desc "project NAME [--resolve]", "Get project status"
-      option :resolve
-      def project( name )
-        status( name )
-      end
-
       desc "organizations", "Get a list of your organizations"
       def organizations
         puts
@@ -150,9 +143,17 @@ module Orchard
         client.hipchat_api token
       end
 
-      desc "status NAME [--resolve]", "Shows full configutation status of project NAME"
+      desc "all_projects [--resolve]", "Show all project status"
       option :resolve
-      def status( name )
+      def all_projects
+        client.projects.each do |p|
+          project( p['name'] )
+        end
+      end
+
+      desc "project NAME [--resolve]", "Get project status"
+      option :resolve
+      def project( name )
         status = Orchard::Status::Project.new( name, options[:resolve] )
 
         status.header "#{name}: Juice Configuration"
@@ -170,6 +171,8 @@ module Orchard
         status.header "#{name}: Team Configuration (#{status.github_teams.join(',')})" if status.github_teams.length > 0
 
         status.check "Members", :github_members
+
+        status.check "User Matchup", :juice_users_synced
         
         status.github_members.each do |m|
           member = m[:name]

@@ -133,7 +133,20 @@ module Orchard
         return a
       end
 
-      def all_repos_tracked
+      def juice_users_synced_diff
+        team_juice_users = {}
+        github_members.each do |member|
+          user = juice_client.user_from_github_user member[:name]
+          team_juice_users[user['id']] = user if user
+        end
+
+        juice_users = juice_client.project_users( @juice_id ).group_by{ |x| x['id'] }
+
+        not_in_juice = team_juice_users.keys - juice_users.keys
+      end
+
+      def juice_users_synced
+        juice_users_synced_diff.length == 0
       end
 
       def servers( env = nil )
@@ -185,7 +198,15 @@ module Orchard
 
         pass = ret
 
-        ret = ret.join( ", " ) if ret.is_a? Array
+        if ret.is_a? Array
+          ret = ret.collect do |x|
+            if x.is_a? Hash
+              x[:name] || x['name']
+            else
+              x
+            end
+          end.join( ", ")
+        end
 
         ret = "" if !ret
 
