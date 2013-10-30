@@ -59,11 +59,11 @@ PROJECT:
 * (DONE) open juice console url
 * (TODO) open production url
 * (TODO) open staging url
-* (TODO) list who is on a project (juice actor api)
-* (TODO) check and configure a project
+* (DONE) list who is on a project (juice actor api)
+* (DONE) check and configure a project
 ** (DONE) Create a project if it doesn't exist
 ** (DONE) Create a hipchat room if it isn't set
-** (TODO) Check to see if bugtracking is configured
+** (DONE) Check to see if bugtracking is configured
 ** (DONE) Check to see if the github team is set
 ** (DONE) Check to see if github hooks are set
 ** (TODO) Add juice feeds for repos within the project
@@ -75,7 +75,7 @@ PROJECT:
 * (DONE) create team
 * (DONE) create repo
 ** (DONE) requires team
-** (TODO) should follow naming, projectname, projectname-api, projectname-ios, projectname-android, etc.
+** (DONE) should follow naming, projectname, projectname-api, projectname-ios, projectname-android, etc.
 * (DONE) create hipchat webhook
 
 ## TEAMS
@@ -88,12 +88,12 @@ PROJECT:
 # HEROKU
 
 * (TODO) create app <environment> - should be prod, stage, demo
-* (TODO) list collaborators
+* (DONE) list collaborators
 * (TODO) add collaborator
-* (TODO) remote collaborator
-* (TODO) list addons
-* (TODO) create HIPCHAT webhook
-* (TODO) pull HEROKU config and set relevant webhooks
+* (TODO) remove collaborator
+* (DONE) list addons
+* (DONE) create HIPCHAT webhook
+* (DONE) pull HEROKU config and set relevant webhooks
 
 # AIRBRAKE
 * (TODO) create HIPCHAT webhook
@@ -115,9 +115,9 @@ PROJECT:
 The following environment variables will be used if set, otherwise they will be pulled from Juice
 
     JUICE_API_ENDPOINT || http://happyfuncorp.com/api
-    HIPCHAT_API_TOKEN'] || juice_client.hipchat_api
-    GITHUB_API_TOKEN'] || juice_client.auth( "github" )
-    HEROKU_API_TOKEN'] || juice_client.auth( "heroku" )
+    HIPCHAT_API_TOKEN || juice_client.hipchat_api
+    GITHUB_API_TOKEN || juice_client.auth( "github" )
+    HEROKU_API_TOKEN || juice_client.auth( "heroku" )
 
 ## BOT
 

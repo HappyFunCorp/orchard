@@ -11,7 +11,7 @@ module Orchard
         puts "Juice credentials cleared." if client.logout
       end
 
-      desc "open [PROJECT]", "Open up juice"
+      desc "open PROJECT", "Open up juice"
       def open( name )
         project_id = project_id_from_name name
         if( project_id.nil? )
@@ -22,7 +22,7 @@ module Orchard
         system "open http://happyfunjuice.com/projects/#{project_id}"
       end
 
-      desc "settings [PROJECT]", "Open up juice settings"
+      desc "settings PROJECT", "Open up juice settings"
       def settings(name)
         project_id = project_id_from_name name
         if( project_id.nil? )
@@ -33,7 +33,7 @@ module Orchard
         system "open http://happyfunjuice.com/projects/#{project_id}/overview"
       end
 
-      desc "create [PROJECT]", "Create a juice project"
+      desc "create PROJECT", "Create a juice project"
       def create( name )
         puts "TIP: you can also run check #{name} to set up everything"
         client.create_project( name )
@@ -57,53 +57,6 @@ module Orchard
         puts
       end
 
-      # Alias for 'info' command
-      desc "project [NAME]", "Get project metadata"
-      def project( name )
-        self.class.new.info( name )
-      end
-
-=begin
-      desc "info [NAME]", "Get project metadata"
-      def info( name )
-        puts
-        puts 'Info:'.bold
-        puts
-        project_id = project_id_from_name name
-        if( project_id.nil? )
-          puts "Project #{name} not found"
-          return
-        end
-
-        data = client.project( project_id_from_name( name ) )
-        puts "Name".blue + "      : #{data['name']} (#{data['name'].projectize})"
-        puts "ID".blue + "        : #{data['id']}"
-        puts "Hipchat".blue + "   : #{data['orchard_config']['hipchat_room']}"
-        puts "Teams".blue + "     : #{data['orchard_config']['teams'].join( ',' )}"
-
-        puts
-
-        repos = []
-        data['orchard_config']['teams'].each do |team|
-          puts "Team #{team}:".bold
-          Orchard::CLI::Github.new.team( team )
-          github_client.list_team_repos( team ).each do |repo|
-            repos << repo['full_name']
-            #printf "Repo".blue + "      : %-40s %s\n", repo['full_name'], repo['description']
-          end
-          #github_client.list_team_members( team ).each do |user|
-            #printf "User".blue + "      : %s\n", user['login']
-          #end
-        end
-
-        puts 'Github Hooks:'.bold
-        repos.each do |repo|
-          Orchard::CLI::Github.new.hooks( repo )
-        end
-        data
-      end
-=end
-
       desc "organizations", "Get a list of your organizations"
       def organizations
         puts
@@ -115,7 +68,7 @@ module Orchard
       end
         
 
-      desc "feeds [PROJECT]", "Show the configured juice feeds"
+      desc "feeds PROJECT", "Show the configured juice feeds"
       def feeds(name)
         puts
         printf "%-30s %-20s %-30s\n".blue.underline, 'Feed', 'Environment', 'Namespace'
@@ -130,7 +83,7 @@ module Orchard
         puts
       end
 
-      desc "users [PROJECT (optional)]", "Get a list of users"
+      desc "users [PROJECT]", "Get a list of users"
       def users( name=nil )
 
         if name.nil?
@@ -147,24 +100,24 @@ module Orchard
         puts
       end
 
-      desc "add_team [PROJECT] [TEAM]", "Add a github team to a project"
+      desc "add_team PROJECT TEAM", "Add a github team to a project"
       def add_team( name, team )
         client.project_add_team( project_id_from_name( name ), team )
         info( name )
       end
 
-      desc "add_hipchat [PROJECT] [ROOM]", "Add a hipchat room to a project"
+      desc "add_hipchat PROJECT ROOM", "Add a hipchat room to a project"
       def add_hipchat( name, room )
         client.project_add_hipchat( project_id_from_name( name ), room )
         info( name )
       end
 
-      desc "lookup_user [NAME]", "Looks up a user by email address"
+      desc "lookup_user NAME", "Looks up a user by email address"
       def lookup_user( query )
         pp client.lookup_user( query )
       end
 
-      desc "search_users [QUERY]", "Look up a user by name, email, github, heroku, etc."
+      desc "search_users QUERY", "Look up a user by name, email, github, heroku, etc."
       def search_users( query )
         puts
         printf "%-25s %35s %35s %35s %35s\n".blue.underline, 'Name', 'Email', 'Personal email', 'Heroku', 'Github'
@@ -174,39 +127,53 @@ module Orchard
         puts
       end
 
-      desc "user_set [FIELD] [VALUE]", "Set the value of a particular field for a user"
-      def user_set( field, value )
-        client
-      end
+      # desc "user_set FIELD VALUE", "Set the value of a particular field for a user"
+      # def user_set( field, value )
+      #   client
+      # end
 
-      desc "heroku_api [TOKEN]", "Sets the organization heroku token"
+      desc "heroku_api TOKEN", "Sets the organization heroku token"
       def heroku_api( token )
         client.heroku_api token
       end
 
 
-      desc "hipchat_api [TOKEN]", "Sets the organization hipchat token"
+      desc "hipchat_api TOKEN", "Sets the organization hipchat token"
       def hipchat_api( token )
         client.hipchat_api token
       end
 
-      desc "status NAME", "Shows full configutation status of project NAME"
+      desc "all_projects [--resolve]", "Show all project status"
       option :resolve
-      def status( name )
+      def all_projects
+        client.projects.each do |p|
+          project( p['name'] )
+        end
+      end
+
+      desc "project NAME [--resolve]", "Get project status"
+      option :resolve
+      def project( name )
         status = Orchard::Status::Project.new( name, options[:resolve] )
 
         status.header "#{name}: Juice Configuration"
         status.check "Project Exists", :project_found
-        status.check "Source Control", :source_control
-        status.check "Github Teams", :github_teams
-        status.check "Bug Tracking", :bugtracking
         status.check "Hipchat Room", :hipchat
+        status.check "Github Teams", :github_teams
+        status.check "Repos Configured", :repos_setup
+        status.check "Source Control", :source_control
+        status.check "Bug Tracking", :bugtracking
 
         status.header "#{name}: Environments"
         status.check "Production", :production
         status.check "Staging", :staging
 
         status.header "#{name}: Team Configuration (#{status.github_teams.join(',')})" if status.github_teams.length > 0
+
+        status.check "Members", :github_members
+
+        status.check "User Matchup", :juice_users_synced
+        
         status.github_members.each do |m|
           member = m[:name]
           access = m[:access]
@@ -247,7 +214,6 @@ module Orchard
         end
 
         status.domains_status.each do |domain|
-
           status.header "DNS: #{domain.domain} configuration"
 
           domain.check "Registered?", :registered?
@@ -261,52 +227,8 @@ module Orchard
       end
 =begin
 
-      desc "check_all", 'Check the state of all projects'
-      def check_all
-        client.projects.each do |project|
-          check_setup(project['name'].projectize)
-        end
-      end
 
 
-      desc "check_setup [PROJECT]", 'Check the state of juice setup'
-      def check_setup( name )
-        project_id = project_id_from_name(name)
-        status = client.check(project_id)
-
-        puts "#{name}:".blue
-        status.each do |category, state|
-          printf "    %-20s", "#{{
-            sourcecontrol: 'Source control',
-            servers: 'Servers',
-            bugtracking: 'Bug tracking',
-            environments: 'Environments'
-          }[category]}: "
-          if state[:passed]
-            printf "\u2713\n".encode('utf-8').green
-          else
-            printf "\u2718\n".encode('utf-8').red
-            state[:messages].each do |message|
-              printf "        #{message}\n".red
-            end
-          end
-        end
-
-        apps = client.heroku_apps( project_id ) 
-
-        if( apps['production'] )
-          puts "Production".blue
-          apps['production'].each do |app|
-            Orchard::CLI::Heroku.new.check app['name']
-          end
-        end
-        if( apps['staging'] )
-          puts "Staging".blue
-          apps['staging'].each do |app|
-            Orchard::CLI::Heroku.new.check app['name']
-          end
-        end
-      end
 
       desc "check [PROJECT]", "Check a project config (all the checks)"
       def check( name )
@@ -319,155 +241,6 @@ module Orchard
         check_hooks( name )
         puts
         info( name )
-      end
-
-      desc "check_project [PROJECT]", "Check to see if a project exists"
-      def check_project( name )
-        puts "Looking for project #{name}".bold
-        project_id = project_id_from_name name
-
-        if project_id.nil?
-          choose do |menu|
-            menu.header = "No juice project found".red
-
-            menu.prompt = "Create?"
-
-            menu.choice "create" do
-              client.create_project name
-            end
-
-            menu.choice "ignore"
-          end
-        else
-          puts "Juice project found".green
-        end
-      end
-
-      desc "check_hipchat [PROJECT]", "Check to see if hipchat is configured"
-      def check_hipchat(name)
-        begin
-          puts "Looking to see if hipchat is configured".bold
-          project_id = project_id_from_name name
-          return if project_id.nil?
-
-          data = client.project project_id
-          config = data['orchard_config']
-
-          if( set( config['hipchat_room'] ) )
-            puts "Hipchat Room Configured: #{config['hipchat_room']}"
-            room = hipchat_client.room_info config['hipchat_room']
-            if room.nil?
-              choose do |menu|
-                menu.header = "Juice has the name configured, but can't find hipchat room named #{config['hipchat_room']}"
-                menu.prompt = "Create or ignore"
-
-                menu.choice "create" do
-                  hipchat_client.create_room( config['hipchat_room'], "Let's talk about #{config['hipchat_room']}!" )
-                end
-
-                menu.choice "ignore"
-              end
-            else
-              puts "Hipchat exists: #{config['hipchat_room']}"
-            end
-          else
-            puts "Hipchat room not set".yellow
-
-            choices = client.hipchat_check.select do |x|
-              x[:projects].first == "_unassigned_"
-            end.collect do |x|
-              x[:room]
-            end
-
-            if choices.member? name
-              puts "Found a matching room... attaching"
-              add_hipchat name, name
-              return
-            end
-
-            room = choose do |menu|
-              menu.header = "Select a hipchat room action"
-              menu.prompt = "Please choose a unassigned hipchat room to associate"
-              menu.choice "Create A Room called #{name}" do
-                "create"
-              end
-
-              menu.choices *choices
-            end
-
-            puts "You chose: #{room}"
-
-            if room == "create"
-              puts "Creating a room #{name}"
-              Orchard::Client.hipchat_client.create_room( name, "Let's talk about #{name}!" )
-              add_hipchat name, name
-            elsif set( room )
-              add_hipchat name, room
-            end
-          end
-        rescue Exceptions::HipchatAuthenticationFailure
-          puts "Error communicating with Hipchat. Is your key valid?".red
-        end
-      end
-
-      desc "check_team [PROJECT]", "Check to see if github team is configured"
-      def check_team(name)
-        begin
-          puts "Looking to see if github team is configured".bold
-          project_id = project_id_from_name name
-          return if project_id.nil?
-
-          data = client.project project_id
-          config = data['orchard_config']
-
-          ##
-          # Github teams
-          ##
-
-          if( config['teams'].size != 0 )
-            puts "Team: #{config['teams'].join( ',' )}"
-          else
-            puts "No teams set".yellow
-
-            team = choose do |menu|
-              menu.header = "Select a github team"
-              menu.prompt = "Please select a team"
-
-              menu.choice "Create a new team" do
-                "create"
-              end
-
-              menu.choices *github_client.list_teams.collect { |x| x.name }
-            end
-
-            if team == "create"
-              puts "Creating team: #{name}"
-              pp github_client.create_team( name )
-              add_team( name, team )
-            elsif set( team )
-              add_team( name, team )
-            end
-          end
-        rescue RuntimeError => e
-          puts "Error communicating with github".red
-          puts Exceptions.formatted(e)
-        end
-      end
-
-      desc "check_bugtracking [PROJECT]", "Check to see if bugtracking is configured"
-      def check_bugtracking
-        puts "Looking to see if bugtracking is configured".bold
-        project_id = project_id_from_name name
-        return if project_id.nil?
-
-        data = client.project project_id
-        config = data['orchard_config']
-
-        ##
-        # Bugtracking
-        ##
-
-        puts "TODO Check bug tracking"
       end
 
       desc "check_hooks [PROJECT]", "Check to see if the hooks are configured"
@@ -543,6 +316,7 @@ module Orchard
         end
 
       end
+=end
 
       desc "hipchat_check", "Prints out all the rooms not assigned to rooms"
       def hipchat_check
@@ -595,9 +369,8 @@ module Orchard
           end
         end
       end
-=end
 
-      desc "activity [PROJECT]", "Shows recent project activity in last week or (default) current week [--lastweek] [--thisweek]"
+      desc "activity PROJECT", "Shows recent project activity in last week or (default) current week [--lastweek] [--thisweek]"
       option :lastweek
       option :thisweek
       def activity( name )
