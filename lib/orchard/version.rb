@@ -1,5 +1,5 @@
 module Orchard
-  VERSION = "0.1.2a"
+  VERSION = "0.1.3a"
 
   class << self
     def version
