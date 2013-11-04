@@ -28,6 +28,11 @@ module Orchard
 
       end
 
+      def initialize(opts={})
+        @options = {}
+        @options['auth_token'] = opts[:auth_token] if opts.include? :auth_token
+      end
+
       base_uri ENV['JUICE_API_ENDPOINT'] || 'http://happyfunjuice.com/api'
       # debug_output $stderr
       
@@ -43,6 +48,11 @@ module Orchard
         auth_token
         pp self.class.post "/organizations/1/projects", { query: { "project[name]" => name } }
         @projects = nil
+      end
+
+      def profile
+        auth_token
+        @projects ||= self.class.get( "/user.json" )
       end
 
       def projects
@@ -317,6 +327,13 @@ module Orchard
       end
 
       
+      def check_credentials( username, password )
+        response = self.class.post '/auth', {body: {username: username, password: password}}
+        raise Exceptions::LoginAuthenticationFailure if response['auth_token'].nil?
+        @options = response.parsed_response if @options['auth_token'].nil?
+      end
+
+
       def query_login
 
         begin
@@ -331,11 +348,7 @@ module Orchard
           username = ask( "Username : " ) { |q| q.echo = true }
           password = ask( "Password : " ) { |q| q.echo = '.' }
 
-          response = self.class.post "/auth", {body: { username: username, password: password } }
-
-          raise Exceptions::LoginAuthenticationFailure if response['auth_token'].nil?
-
-          @options = response.parsed_response
+          @options = check_credentials( username, password )
 
           write_auth_token( @options )
         end
@@ -362,6 +375,14 @@ module Orchard
 
 
       def auth_token
+
+        # Just return it if it's been set manually. This is accomplished when client is
+        # instantiated with JuiceClient.new(auth_token: ---)
+        if !@options['auth_token'].nil?
+          self.class.default_params auth_token: @options['auth_token']
+          return @options['auth_token']
+        end
+
         if ENV['JUICE_AUTH_TOKEN'].nil?
           begin
             query_login
