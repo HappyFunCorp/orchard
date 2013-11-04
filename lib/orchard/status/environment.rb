@@ -35,6 +35,11 @@ module Orchard
           printf "\u2713 #{ret}\n".encode('utf-8').green
         else
           printf "\u2718 #{ret}\n".encode('utf-8').red
+          if( @project.resolve )
+            r = "resolve_#{method}".to_sym
+            __send__(r) if respond_to? r
+          end
+
         end
       end
 
@@ -56,6 +61,13 @@ module Orchard
 
       def deployhooks
         client.addons(@server, /deployhooks/)
+      end
+
+      def resolve_deployhooks
+        system( "echo heroku addons:add deployhooks:hipchat --auth_token=#{@project.juice_client.hipchat_api} --room=\"#{@project.config['hipchat_room']}\" --app #{@server}")
+        system( "heroku addons:add deployhooks:hipchat --auth_token=#{@project.juice_client.hipchat_api} --room=\"#{@project.config['hipchat_room']}\" --app #{@server}" )
+        Orchard::Client::hipchat_client.post_message @project.config['hipchat_room'], "Heroku app: #{@server} commit hook now added"
+
       end
 
       def ssl
