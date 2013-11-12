@@ -14,7 +14,17 @@ module Orchard
         @github_client ||= Orchard::Client::GithubClient.new( Github.new( oauth_token: get_token( :github ) ) )
       end
 
-      def juice_client
+      def juice_client( options = {} )
+        if( options[:auth_token] )
+          if( @juice_client && @juice_client.auth_token != options[:auth_token] )
+            @juice_client = nil
+            @hipchat_client = nil
+            @github_client = nil
+          end
+
+          @juice_client ||= Orchard::Client::JuiceClient.new options
+        end
+        
         @juice_client ||= Orchard::Client::JuiceClient.new
       end
 
