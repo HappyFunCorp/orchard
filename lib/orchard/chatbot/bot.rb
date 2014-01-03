@@ -140,7 +140,7 @@ module Orchard
     end
 
     def make_me_a_sandwich(response)
-      response.reply('No.')
+      response.reply('What? No. Make it yourself.')
     end
 
     def sudo_make_me_a_sandwich(response)
