@@ -2,7 +2,7 @@ require 'active_support/time'
 require 'json'
 require 'httparty'
 
-module Orchard
+module Blend
   class Bot < Lita::Handler
     route /^echo\s+(.+)/, :echo, command: true, help: { "echo test" => "Replies back with test" }
     route /^(wtf|what)\s*(happened )?([\w\s]*)\??$/i, :wtf, command: true, help: { "wtf [time interval]" => "Project activity. Time interval defaults to this week. Options are 'today', 'yesterday', 'this week', 'last week', 'this month', 'last month'.  'wtf happened' and 'what happened' are also valid." }
@@ -32,7 +32,7 @@ module Orchard
 
     class << self
       def project_id( response )
-        Orchard::Client.juice_client.project_id_from_room( ENV['HIPBOT_ROOM'] || response.message.source.room )
+        Blend::Client.juice_client.project_id_from_room( ENV['HIPBOT_ROOM'] || response.message.source.room )
       end
 
       def capture_stderr
@@ -130,7 +130,7 @@ module Orchard
 
   
     def projects(response)
-      answer = Orchard::Client.juice_client.projects
+      answer = Blend::Client.juice_client.projects
       response.reply( answer.collect{|x| x['name']}.join(', ') )
     end
 

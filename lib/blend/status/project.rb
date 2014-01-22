@@ -1,17 +1,17 @@
-require 'orchard/status/team'
-require 'orchard/status/repo'
-require 'orchard/status/domain'
-require 'orchard/status/environment'
-require 'orchard/status/project_resolver'
+require 'blend/status/team'
+require 'blend/status/repo'
+require 'blend/status/domain'
+require 'blend/status/environment'
+require 'blend/status/project_resolver'
 
-module Orchard
+module Blend
   module Status
     class Project
       attr_accessor :name, :juice_id, :juice_client, :resolve
 
       def initialize( name, resolve = false )
         @name = name
-        @juice_client = Orchard::Client.juice_client
+        @juice_client = Blend::Client.juice_client
         reload
         @resolve = resolve
         @resolver = ProjectResolver.new( self )
@@ -70,7 +70,7 @@ module Orchard
       end
 
       def config
-        @config ||= (@juice_client.project( @juice_id ) || {})['orchard_config']
+        @config ||= (@juice_client.project( @juice_id ) || {})['blend_config']
       end
 
       def feeds

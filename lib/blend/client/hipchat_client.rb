@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module Client
     class HipchatClient
       attr_accessor :api

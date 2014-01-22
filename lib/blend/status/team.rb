@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module Status
     class Team
       attr_accessor :name
@@ -9,7 +9,7 @@ module Orchard
       end
 
       def github_client
-        Orchard::Client.github_client
+        Blend::Client.github_client
       end
 
       def repos

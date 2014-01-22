@@ -1,6 +1,6 @@
 require 'highline/import'
 
-module Orchard
+module Blend
   module Client
     class HerokuClient
 

@@ -1,12 +1,12 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "orchard/version"
+require "blend/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "orchard"
-  s.version     = Orchard::VERSION
+  s.name        = "blend"
+  s.version     = Blend::VERSION
   s.authors     = ["Ricky Reusser","Will Schenk"]
   s.email       = ["ricky@happyfuncorp.com","will@happyfuncorp.com"]
   s.homepage    = "http://happyfuncorp.com"
@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["Rakefile"]
   s.test_files = Dir["test/**/*"]
-  s.executables << 'orchard'
+  s.executables << 'blend'
 
   s.add_dependency "thor"
   s.add_dependency "hipchat-api"

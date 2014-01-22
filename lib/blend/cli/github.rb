@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module CLI
     class Github < Thor
       desc "hooks REPO", "Lists out service hooks for a given repo"
@@ -26,11 +26,11 @@ module Orchard
       desc "add_hipchat REPO ROOM", "Add hipchat hook to repo"
       def add_hipchat( repo, room )
         client.add_hook( repo, "hipchat", { 
-          auth_token: Orchard::Client::get_token( :hipchat ), 
+          auth_token: Blend::Client::get_token( :hipchat ), 
           notify: "1",
           restrict_to_branch: "",
           room: room } )
-        Orchard::Client::hipchat_client.post_message room, "#{repo} commit hook now added"
+        Blend::Client::hipchat_client.post_message room, "#{repo} commit hook now added"
       end
 
       desc "repos", "Lists out the repos"
@@ -131,7 +131,7 @@ module Orchard
 
       no_commands do
         def client
-          @client ||= Orchard::Client.github_client
+          @client ||= Blend::Client.github_client
         end
       end
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    orchard (0.1.3a)
+    blend (0.1.4)
       colorize
       dnsruby
       github_api
@@ -46,18 +46,18 @@ GEM
       multi_json (~> 1.0)
       multi_xml (>= 0.5.2)
     httpauth (0.2.0)
-    httpclient (2.3.3)
+    httpclient (2.3.4.1)
     jwt (0.1.8)
       multi_json (>= 1.5)
     launchy (2.3.0)
       addressable (~> 2.3)
-    mime-types (1.25)
+    mime-types (1.25.1)
     mini_portile (0.5.2)
-    multi_json (1.8.2)
+    multi_json (1.8.4)
     multi_xml (0.5.5)
     multipart-post (1.2.0)
     netrc (0.7.7)
-    nokogiri (1.6.0)
+    nokogiri (1.6.1)
       mini_portile (~> 0.5.0)
     oauth2 (0.9.2)
       faraday (~> 0.8)
@@ -77,4 +77,4 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  orchard!
+  blend!

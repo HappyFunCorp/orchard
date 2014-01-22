@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module Client
     class GithubClient
       attr_accessor :client

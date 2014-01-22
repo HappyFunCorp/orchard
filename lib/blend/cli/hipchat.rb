@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module CLI
     class Hipchat < Thor
       desc "rooms", "Show all hipchat rooms"
@@ -53,7 +53,7 @@ module Orchard
 
       no_commands do
         def client
-          @client ||= Orchard::Client.hipchat_client
+          @client ||= Blend::Client.hipchat_client
         end
       end
     end

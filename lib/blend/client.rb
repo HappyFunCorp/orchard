@@ -1,17 +1,17 @@
-require 'orchard/client/hipchat_client'
-require 'orchard/client/github_client'
-require 'orchard/client/juice_client'
-require 'orchard/client/heroku_client'
+require 'blend/client/hipchat_client'
+require 'blend/client/github_client'
+require 'blend/client/juice_client'
+require 'blend/client/heroku_client'
 
-module Orchard
+module Blend
   module Client
     class << self
       def hipchat_client
-        @hipchat_client ||= Orchard::Client::HipchatClient.new( HipChat::API.new( get_token( :hipchat ) ) )
+        @hipchat_client ||= Blend::Client::HipchatClient.new( HipChat::API.new( get_token( :hipchat ) ) )
       end
 
       def github_client
-        @github_client ||= Orchard::Client::GithubClient.new( Github.new( oauth_token: get_token( :github ) ) )
+        @github_client ||= Blend::Client::GithubClient.new( Github.new( oauth_token: get_token( :github ) ) )
       end
 
       def juice_client( options = {} )
@@ -22,14 +22,14 @@ module Orchard
             @github_client = nil
           end
 
-          @juice_client ||= Orchard::Client::JuiceClient.new options
+          @juice_client ||= Blend::Client::JuiceClient.new options
         end
         
-        @juice_client ||= Orchard::Client::JuiceClient.new
+        @juice_client ||= Blend::Client::JuiceClient.new
       end
 
       def heroku_client
-        @heroku_client ||= Orchard::Client::HerokuClient.new( Heroku::API.new( api_key: get_token( :heroku ) ) )
+        @heroku_client ||= Blend::Client::HerokuClient.new( Heroku::API.new( api_key: get_token( :heroku ) ) )
       end
 
       def get_token( type )

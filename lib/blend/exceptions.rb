@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module Exceptions
     class AuthenticationFailure < StandardError; end
     class LoginAuthenticationFailure < StandardError; end

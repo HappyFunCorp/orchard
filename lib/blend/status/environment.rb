@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module Status
     class Environment
       attr_accessor :project, :server, :environment
@@ -44,7 +44,7 @@ module Orchard
       end
 
       def client
-        Orchard::Client.heroku_client
+        Blend::Client.heroku_client
       end
 
       def log_monitoring
@@ -66,7 +66,7 @@ module Orchard
       def resolve_deployhooks
         system( "echo heroku addons:add deployhooks:hipchat --auth_token=#{@project.juice_client.hipchat_api} --room=\"#{@project.config['hipchat_room']}\" --app #{@server}")
         system( "heroku addons:add deployhooks:hipchat --auth_token=#{@project.juice_client.hipchat_api} --room=\"#{@project.config['hipchat_room']}\" --app #{@server}" )
-        Orchard::Client::hipchat_client.post_message @project.config['hipchat_room'], "Heroku app: #{@server} commit hook now added"
+        Blend::Client::hipchat_client.post_message @project.config['hipchat_room'], "Heroku app: #{@server} commit hook now added"
 
       end
 
