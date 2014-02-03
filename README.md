@@ -1,4 +1,4 @@
-## Orchard is a command line tool to manage projects with HappyFunJuice.
+## Blend is a command line tool to manage projects with HappyFunJuice.
 
 There's also a bot.
 
@@ -12,33 +12,33 @@ It integrates with
 
 # Installation
 
-    gem 'orchard'
+    gem 'blend'
 
 # CLI Usage
 
-    orchard help
-    orchard projects
-    orchard project info Juice
-    orchard project addmember Juice will@happyfuncorp.com
+    blend help
+    blend projects
+    blend project info Juice
+    blend project addmember Juice will@happyfuncorp.com
 
-# Using orchard in other scripts
+# Using blend in other scripts
 
-Orchard::Client is the main entry point.  This will return a configured client, for example one of:
+Blend::Client is the main entry point.  This will return a configured client, for example one of:
 
-    Orchard::Client::JuiceClient
-    Orchard::Client::HipchatClient
-    Orchard::Client::GithubClient
+    Blend::Client::JuiceClient
+    Blend::Client::HipchatClient
+    Blend::Client::GithubClient
 
 If you haven't logged in to juice, it will ask you, and then it will pull the auth code for the given project.  Sometimes it will return a organization API code since they work off of projects.  The hipchat is stored on the Organization level for example.
 
-    require 'orchard'
-    juice = Orchard::Client.juice_client
+    require 'blend'
+    juice = Blend::Client.juice_client
     juice.profile
 
 or
 
-    require 'orchard'
-    Orchard::Client::hipchat_client.post_message room_name, message
+    require 'blend'
+    Blend::Client::hipchat_client.post_message room_name, message
 
 ## Details
 
@@ -125,4 +125,4 @@ The following environment variables will be used if set, otherwise they will be 
     bundle
     lita
 
-Commands for the bot are in orchard/bot.rb.  Still needs work.
+Commands for the bot are in blend/bot.rb.  Still needs work.

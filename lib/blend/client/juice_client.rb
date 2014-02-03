@@ -1,6 +1,6 @@
 require 'highline/import'
 
-module Orchard
+module Blend
   module Client
     class JuiceClient
       include HTTParty
@@ -58,35 +58,35 @@ module Orchard
       def projects
         auth_token
         @projects ||= self.class.get( "/projects.json" ).each do |x|
-          x['orchard_config'] ||= {}
-          x['orchard_config']['teams'] ||= []
+          x['blend_config'] ||= {}
+          x['blend_config']['teams'] ||= []
         end
       end
 
       def summary
         auth_token
         @projects ||= self.class.get( "/projects/summary.json" ).each do |x|
-          x['orchard_config'] ||= {}
-          x['orchard_config']['teams'] ||= []
+          x['blend_config'] ||= {}
+          x['blend_config']['teams'] ||= []
         end
       end
 
       def organizations
         auth_token
         @organizations ||= self.class.get( "/organizations.json" ).each do |o|
-          o['orchard_config'] ||= {}
+          o['blend_config'] ||= {}
         end
       end
 
       def project_info_from_room( room )
         auth_token
         if room =~ /[0-9]+_[^@]+@.*/
-          room_name = Orchard::Client.hipchat_client.room_name_from_xmpp_jid( room )
+          room_name = Blend::Client.hipchat_client.room_name_from_xmpp_jid( room )
         else
           room_name = room
         end
         return nil if room_name.nil? or room_name.length==0
-        projects.select{|x| (x['orchard_config']['hipchat_room'].downcase rescue nil) == room_name.downcase}.first
+        projects.select{|x| (x['blend_config']['hipchat_room'].downcase rescue nil) == room_name.downcase}.first
       end
 
       def project_id_from_room( room )
@@ -116,8 +116,8 @@ module Orchard
         auth_token
         data = self.class.get "/projects/#{id}.json"
 
-        data['orchard_config'] ||= {}
-        data['orchard_config']['teams'] ||= []
+        data['blend_config'] ||= {}
+        data['blend_config']['teams'] ||= []
 
         data
       end
@@ -157,10 +157,10 @@ module Orchard
         if( config.nil? )
           puts "Loading config"
           project = self.class.get "/projects/#{id}.json"
-          project['orchard_config'] || {}
+          project['blend_config'] || {}
         else
           puts "Setting config #{config}"
-          self.class.put "/projects/#{id}.json", { query: { project: { orchard_config: config } } }
+          self.class.put "/projects/#{id}.json", { query: { project: { blend_config: config } } }
           @projects = nil
         end
       end
@@ -271,13 +271,13 @@ module Orchard
       end
 
       def hipchat_check
-        hipchat_client = Orchard::Client.hipchat_client
+        hipchat_client = Blend::Client.hipchat_client
 
         rooms = {}
         hipchat_client.rooms.each { |x| rooms[x['name']] = [] }
 
         projects.each do |project|
-          room = project['orchard_config']['hipchat_room']
+          room = project['blend_config']['hipchat_room']
           if room
             rooms[room] ||= []
             rooms[room] << project['name']
@@ -293,7 +293,7 @@ module Orchard
       end
 
       def github_team_check
-        github_client = Orchard::Client.github_client
+        github_client = Blend::Client.github_client
 
         teams = {}
         github_client.list_teams.each do |team|
@@ -301,7 +301,7 @@ module Orchard
         end
 
         projects.each do |project|
-          project['orchard_config']['teams'].each do |x|
+          project['blend_config']['teams'].each do |x|
             teams[x] << project
           end
         end

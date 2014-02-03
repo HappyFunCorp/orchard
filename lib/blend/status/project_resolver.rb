@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module Status
     class ProjectResolver
       attr_accessor :project
@@ -12,7 +12,7 @@ module Orchard
       end
 
       def github_client
-        Orchard::Client.github_client
+        Blend::Client.github_client
       end
 
       def name
@@ -69,7 +69,7 @@ module Orchard
         if room == "create"
           room = name
           puts "Creating a room #{name}"
-          Orchard::Client.hipchat_client.create_room( name, "Let's talk about #{name}!" )
+          Blend::Client.hipchat_client.create_room( name, "Let's talk about #{name}!" )
         end
 
         if( set( room ) )
@@ -86,7 +86,7 @@ module Orchard
             "create"
           end
 
-          menu.choices *Orchard::Client.juice_client.github_team_check.select { |k,v| v.length == 0}.keys
+          menu.choices *Blend::Client.juice_client.github_team_check.select { |k,v| v.length == 0}.keys
         end
 
         if team == "create"

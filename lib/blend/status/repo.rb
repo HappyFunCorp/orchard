@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module Status
     class Repo
       attr_accessor :project, :name, :repo
@@ -10,7 +10,7 @@ module Orchard
       end
 
       def github_client
-        Orchard::Client.github_client
+        Blend::Client.github_client
       end
 
       def private?
@@ -27,7 +27,7 @@ module Orchard
 
       def resolve_hipchat_hook
         puts "Adding hipchat hook...".yellow
-        Orchard::CLI::Github.new.add_hipchat( repo['full_name'], @project.hipchat ) if @project.hipchat
+        Blend::CLI::Github.new.add_hipchat( repo['full_name'], @project.hipchat ) if @project.hipchat
       end
 
       def check key, method

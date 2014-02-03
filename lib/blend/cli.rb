@@ -1,38 +1,38 @@
-require 'orchard/cli/hipchat'
-require 'orchard/cli/github'
-require 'orchard/cli/juice'
-require 'orchard/cli/heroku'
+require 'blend/cli/hipchat'
+require 'blend/cli/github'
+require 'blend/cli/juice'
+require 'blend/cli/heroku'
 
-module Orchard
+module Blend
   module CLI
     class CLI < Thor
 
       desc "logout", "Clear juice credentials"
       def logout
-        Orchard::CLI::Juice.new.logout
+        Blend::CLI::Juice.new.logout
       end
 
       desc "login", "Acquire juice credentials"
       def login
-        Orchard::CLI::Juice.new.login
+        Blend::CLI::Juice.new.login
       end
 
       desc 'projects', 'List of Juice projects'
       def projects
-        Orchard::CLI::Juice.new.projects
+        Blend::CLI::Juice.new.projects
       end
 
       desc "hipchat COMMANDS", "Hipchat Control Module"
-      subcommand "hipchat", Orchard::CLI::Hipchat
+      subcommand "hipchat", Blend::CLI::Hipchat
       
       desc "github COMMANDS", "Github Control Module"
-      subcommand "github", Orchard::CLI::Github
+      subcommand "github", Blend::CLI::Github
 
       desc "juice COMMANDS", "Juice Control Module"
-      subcommand "juice", Orchard::CLI::Juice
+      subcommand "juice", Blend::CLI::Juice
 
       desc "heroku COMMANDS", "Heroku Control Module"
-      subcommand "heroku", Orchard::CLI::Heroku
+      subcommand "heroku", Blend::CLI::Heroku
     end
   end
 end

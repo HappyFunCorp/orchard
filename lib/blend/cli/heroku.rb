@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module CLI
     class Heroku < Thor
 
@@ -210,7 +210,7 @@ module Orchard
 
       no_commands do
         def client
-          @client ||= Orchard::Client.heroku_client
+          @client ||= Blend::Client.heroku_client
         end
       end
 

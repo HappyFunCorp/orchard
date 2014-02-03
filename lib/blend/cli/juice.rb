@@ -1,4 +1,4 @@
-module Orchard
+module Blend
   module CLI
     class Juice < Thor
       desc "login", "Login to juice"
@@ -51,8 +51,8 @@ module Orchard
             project['name'].projectize, 
             (project['has_source_feeds'] ? project['commits_this_week'] : ''),
             (project['has_server_feeds'] ? project['deploys_this_week'] : ''),
-            project['orchard_config']['hipchat_room'],
-            project['orchard_config']['teams'].join( ',' )
+            project['blend_config']['hipchat_room'],
+            project['blend_config']['teams'].join( ',' )
         end
         puts
       end
@@ -154,7 +154,7 @@ module Orchard
       desc "project NAME [--resolve]", "Get project status"
       option :resolve
       def project( name )
-        status = Orchard::Status::Project.new( name, options[:resolve] )
+        status = Blend::Status::Project.new( name, options[:resolve] )
 
         status.header "#{name}: Juice Configuration"
         status.check "Project Exists", :project_found
@@ -253,7 +253,7 @@ module Orchard
         return if project_id.nil?
 
         data = client.project project_id
-        config = data['orchard_config']
+        config = data['blend_config']
 
         teams = config['teams']
 
@@ -272,7 +272,7 @@ module Orchard
                 puts "Missing hipchat hook"
                 if config['hipchat_room']
                   puts "Adding Hipchat Hook"
-                  Orchard::CLI::Github.new.add_hipchat( repo['full_name'], config['hipchat_room'])
+                  Blend::CLI::Github.new.add_hipchat( repo['full_name'], config['hipchat_room'])
                 else
                   puts "Missing hipchat room"
                 end
@@ -289,28 +289,28 @@ module Orchard
         if( apps['production'] )
           puts "Production".blue
           apps['production'].each do |app|
-            Orchard::CLI::Heroku.new.check app['name']
+            Blend::CLI::Heroku.new.check app['name']
             a = heroku_client.addons(app['name'], /deployhooks/)
 
             if( a.nil? || a.length == 0 )
               puts "Adding deploy hook".yellow
               system( "echo heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']} --app #{app['name']}\"")
               system( "heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']}\" --app #{app['name']}")
-              Orchard::Client::hipchat_client.post_message config['hipchat_room'], "Heroku app: #{app['name']} commit hook now added"
+              Blend::Client::hipchat_client.post_message config['hipchat_room'], "Heroku app: #{app['name']} commit hook now added"
             end
           end
         end
         if( apps['staging'] )
           puts "Staging".blue
           apps['staging'].each do |app|
-            Orchard::CLI::Heroku.new.check app['name']
+            Blend::CLI::Heroku.new.check app['name']
             a = heroku_client.addons(app['name'], /deployhooks/)
 
             if( a.nil? || a.length == 0 )
               puts "Adding deploy hook".yellow
               system( "echo heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']} --app #{app['name']}\"")
               system( "heroku addons:add deployhooks:hipchat --auth_token=#{client.hipchat_api} --room=\"#{config['hipchat_room']} --app #{app['name']}\"")
-              Orchard::Client::hipchat_client.post_message config['hipchat_room'], "Heroku app: #{app['name']} commit hook now added"
+              Blend::Client::hipchat_client.post_message config['hipchat_room'], "Heroku app: #{app['name']} commit hook now added"
             end
           end
         end
@@ -465,19 +465,19 @@ module Orchard
 
       no_commands do
         def client
-          @client ||= Orchard::Client.juice_client
+          @client ||= Blend::Client.juice_client
         end
 
         def hipchat_client
-          Orchard::Client.hipchat_client
+          Blend::Client.hipchat_client
         end
 
         def github_client
-          Orchard::Client.github_client
+          Blend::Client.github_client
         end
 
         def heroku_client
-          Orchard::Client.heroku_client
+          Blend::Client.heroku_client
         end
 
         def project_id_from_name( name )

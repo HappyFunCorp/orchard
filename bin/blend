@@ -1,25 +1,25 @@
 #!/usr/bin/env ruby
 
-require 'orchard'
+require 'blend'
 require 'colorize'
 
 begin
-  Orchard::CLI::CLI.start( ARGV )
+  Blend::CLI::CLI.start( ARGV )
 
-rescue Orchard::Exceptions::LoginAuthenticationFailure
+rescue Blend::Exceptions::LoginAuthenticationFailure
   puts "Login credentials invalid.".red
 
-rescue Orchard::Exceptions::AuthenticationFailure
+rescue Blend::Exceptions::AuthenticationFailure
   puts "Login credentials invalid.".red
   puts ""
   puts "You probably need to log out and log back in again:"
-  puts "  $ orchard juice logout"
-  puts "  $ orchard juice login"
+  puts "  $ blend juice logout"
+  puts "  $ blend juice login"
 
-rescue Orchard::Exceptions::AlreadyLoggedIn
+rescue Blend::Exceptions::AlreadyLoggedIn
   puts "You're already logged in."
 
-rescue Orchard::Exceptions::AlreadyLoggedOut
+rescue Blend::Exceptions::AlreadyLoggedOut
   puts "You're already logged out."
 
 rescue Psych::SyntaxError

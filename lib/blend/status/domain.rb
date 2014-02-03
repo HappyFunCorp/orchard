@@ -2,7 +2,7 @@ require 'dnsruby'
 require 'whois'
 require 'httpclient'
 
-module Orchard
+module Blend
   module Status
     class Domain
       attr_accessor :project, :domain, :res, :environment
