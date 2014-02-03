@@ -15,7 +15,7 @@ module Orchard
     route /^chuck$/, :chuck, command: true
     route /^make me a sandwich/, :make_me_a_sandwich, command: true
     route /^sudo make me a sandwich/, :sudo_make_me_a_sandwich, command: true
-    route /^emoticons/, :emoticons, command: true, :help: {'emoticons' => 'List all emoticons'}
+    route /^emoticons/, :emoticons, command: true, help: {'emoticons' => 'List all emoticons'}
 
     def whois(response)
       answer = StringIO.new
