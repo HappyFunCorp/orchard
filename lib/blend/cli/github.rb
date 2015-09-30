@@ -36,9 +36,9 @@ module Blend
       desc "repos", "Lists out the repos"
       def repos
         puts
-        printf "%-50s %-40s\n".blue.underline, 'Name', 'Description'
+        printf "%-25s %-50s %-40s\n", 'Last Active', 'Name', 'Description'
         client.list_repos.each do |repo|
-          printf "%-50s %-40s\n", repo['full_name'], repo['description']
+          printf "%-25s %-50s %-40s\n", repo['pushed_at'], repo['full_name'], repo['description']
         end
         puts
       end
@@ -69,8 +69,10 @@ module Blend
 
       desc "teams", "List out organizations team"
       def teams
-        client.list_teams.each do |team|
-          puts team.name
+        client.list_teams.each_page do |page|
+          page.each do |team|
+            puts team.name
+          end
         end
       end
 
@@ -127,6 +129,26 @@ module Blend
       def team_repo_rm( team, repo )
         client.remove_team_repo( team, repo )
         team( team )
+      end
+
+      DIR="/Volumes/Big/tmp"
+      desc "backup", "backup all repositories"
+      def backup
+        client.list_repos.each do |repo|
+          if Dir.exist?( "#{DIR}/#{repo["name"]}")
+            puts "Updating #{repo['name']}"
+            system( "cd #{DIR}/#{repo["name"]} && git pull origin master" )
+          else
+            puts "Cloning #{repo['name']}"
+            system( "cd #{DIR} && git clone #{repo["clone_url"]}")
+          end
+
+          puts "Moving to dropbox..."
+          system( "mkdir -p ~/Dropbox/HFC-Github-Backups")
+          system( "cd #{DIR} && tar czf #{repo['name']}.tgz #{repo['name']} && mv #{repo['name']}.tgz ~/Dropbox/HFC-Github-Backups")
+          puts
+        end
+        # https://github.com/sublimeguile/7spots_backend.git
       end
 
       no_commands do

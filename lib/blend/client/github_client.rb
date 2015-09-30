@@ -11,7 +11,7 @@ module Blend
         return @repos if @repos && filter.nil?
 
         repos = []
-        @client.repos.list( org: "sublimeguile" ).each_page do |page|
+        @client.repos.list( org: "HappyFunCorp" ).each_page do |page|
           page.each do |r|
             repos << r
           end
@@ -31,8 +31,8 @@ module Blend
 
       def repo_create( team, name )
         require 'pp'
-        pp @client.repos.create org: "sublimeguile", name: name, public: false, private: true
-        add_team_repo( team, "sublimeguile/#{name}" )
+        pp @client.repos.create org: "HappyFunCorp", name: name, public: false, private: true
+        add_team_repo( team, "HappyFunCorp/#{name}" )
       end
 
 
@@ -49,7 +49,7 @@ module Blend
       end
 
       def list_teams
-        @client.orgs.teams.list "sublimeguile"
+        @client.orgs.teams.list org: "HappyFunCorp", auto_pagination: true
       end
 
       def find_team_from_name( name )
@@ -73,7 +73,7 @@ module Blend
       end
 
       def create_team( team )
-        @client.orgs.teams.create "sublimeguile", { name: team, permission: "push" }
+        @client.orgs.teams.create "HappyFunCorp", { name: team, permission: "push" }
       end
 
       def add_team_member( team, user )
